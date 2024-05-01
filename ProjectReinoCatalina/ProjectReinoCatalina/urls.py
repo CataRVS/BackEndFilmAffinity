@@ -20,6 +20,6 @@ from .BackEnd import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("movies/", views.MovieListAPIView.as_view(), name="movie-list"),
+    path("movies/", views.MovieListCreateAPIView.as_view(), name="movie-list"),
     path("movies/<int:pk>/", views.MovieDetailAPIView.as_view(), name="movie-detail"),
 ]

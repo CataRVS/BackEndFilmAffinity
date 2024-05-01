@@ -13,7 +13,7 @@ def is_admin(user):
     return user.is_authenticated and user.is_staff
 
 
-class MovieListAPIView(generics.ListAPIView):
+class MovieListCreateAPIView(generics.ListCreateAPIView):
     queryset = Movies.objects.all()
     serializer_class = MoviesSerializer
 
@@ -183,8 +183,13 @@ class MovieListAPIView(generics.ListAPIView):
             movie_data['genres'] = [str(genre) for genre in movie.genres.all()]
             data.append(movie_data)
 
-        print(data)
         return Response(data)
+
+    # Only admins can create
+    def create(self, request, *args, **kwargs):
+        if not is_admin(request.user):
+            raise ValidationError('Only admins can create movies')
+        return super().create(request, *args, **kwargs)
 
 
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
