@@ -8,25 +8,9 @@ from django.db.models import Avg
 from .models import Movies
 from .serializers import MoviesSerializer
 
-# Only ADMIN can perform CRUD operations in the movies
-# The users can only see the movies
-# def is_admin(user):
-#     return user.is_superuser
 
-# class MovieCreateAPIView(generics.CreateAPIView):
-#     queryset = Movies.objects.all()
-#     serializer_class = MoviesSerializer
-
-#     def perform_create(self, serializer):
-#         """
-#         This function is called when a movie is created
-#         """
-#         # We check if the user is an admin
-#         if not is_admin(self.request.user):
-#             raise ValidationError('Only admins can create movies')
-
-#         # We create the movie
-#         serializer.save()
+def is_admin(user):
+    return user.is_authenticated and user.is_staff
 
 
 class MovieListAPIView(generics.ListAPIView):
@@ -201,3 +185,38 @@ class MovieListAPIView(generics.ListAPIView):
 
         print(data)
         return Response(data)
+
+
+class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Movies.objects.all()
+    serializer_class = MoviesSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        This function returns the movie with the average rating.
+        """
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        rating_avg = instance.ratings.aggregate(avg_rating=Avg('rating')).get('avg_rating')
+        if rating_avg is None:
+            rating_avg = 0
+        data = serializer.data
+        data['average_rating'] = rating_avg
+
+        # We change the director and actors to a string
+        data['director'] = str(instance.director)
+        data['actors'] = [str(actor) for actor in instance.actors.all()]
+        data['genres'] = [str(genre) for genre in instance.genres.all()]
+        return Response(data)
+
+    # Only admins can update
+    def update(self, request, *args, **kwargs):
+        if not is_admin(request.user):
+            raise ValidationError('Only admins can update movies')
+        return super().update(request, *args, **kwargs)
+
+    # Only admins can delete
+    def delete(self, request, *args, **kwargs):
+        if not is_admin(request.user):
+            raise ValidationError('Only admins can delete movies')
+        return super().delete(request, *args, **kwargs)
