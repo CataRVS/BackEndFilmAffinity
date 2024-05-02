@@ -233,7 +233,7 @@ class Movies(models.Model):
     # the related_name is to access the movies of a category
     genres = models.ManyToManyField(Categories, related_name='movies')
 
-    # TODO: si queremos hacer el extra podemos almacenarlos en distintas tablas
+    # Foreign key to the director and actors
     director = models.ForeignKey(Directors, on_delete=models.CASCADE)
     actors = models.ManyToManyField(Actors, related_name='movies')
 
@@ -241,6 +241,12 @@ class Movies(models.Model):
     duration = models.IntegerField()
     release_date = models.DateField()
     language = models.CharField(max_length=50)
+
+    # Poster of the movie
+    poster = models.ImageField(upload_to='posters/',
+                               blank=True,
+                               null=True,
+                               default=None)
 
     class Meta:
         # Ordenamos las películas por orden alfabético 

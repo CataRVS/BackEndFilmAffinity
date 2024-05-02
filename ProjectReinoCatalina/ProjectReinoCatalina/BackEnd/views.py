@@ -24,7 +24,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         
         import requests
 
-        url = 'http://127.0.0.1:8000/movies/filterMovies/'
+        url = 'http://127.0.0.1:8000/movies/'
 
         # Data to filter
         movie_data = {

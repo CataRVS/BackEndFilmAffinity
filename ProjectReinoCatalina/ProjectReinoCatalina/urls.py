@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .BackEnd import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("movies/", views.MovieListCreateAPIView.as_view(), name="movie-list"),
     path("movies/<int:pk>/", views.MovieDetailAPIView.as_view(), name="movie-detail"),
-]
+] + static(settings.POSTERS_URL, document_root=settings.POSTERS_DIR)

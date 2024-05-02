@@ -7,8 +7,16 @@ django.setup()
 
 from ProjectReinoCatalina.BackEnd.models import Movies, Directors, Categories, Actors
 from ProjectReinoCatalina.BackEnd.serializers import MoviesSerializer
+from django.core.files import File
+
+# Get the directory of the current file (create_movies.py)
+current_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Build the full path to the image
+# poster_path = os.path.join(current_directory, 'Posters_to_load', 'dunkirk.jpg')
 
 # Lista de nuevas películas para agregar
+# Todos los posters están en una carpeta fuera del proyecto llamada posters to load
 movie_list = [
     {
         'title': 'Dunkirk',
@@ -18,7 +26,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Christopher', 'surname': 'Nolan'},
         'actors': [{'name': 'Tom', 'surname': 'Hardy'}, {'name': 'Cillian', 'surname': 'Murphy'}],
-        'genres': ['War', 'Action', 'History']
+        'genres': ['War', 'Action', 'History'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'dunkirk.jpeg')
     },
     {
         'title': 'The Dark Knight',
@@ -28,7 +37,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Christopher', 'surname': 'Nolan'},
         'actors': [{'name': 'Christian', 'surname': 'Bale'}, {'name': 'Heath', 'surname': 'Ledger'}],
-        'genres': ['Action', 'Crime', 'Drama']
+        'genres': ['Action', 'Crime', 'Drama'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'dark_knight.jpeg')
     },
     {
         'title': 'Blade Runner 2049',
@@ -38,7 +48,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Denis', 'surname': 'Villeneuve'},
         'actors': [{'name': 'Ryan', 'surname': 'Gosling'}, {'name': 'Harrison', 'surname': 'Ford'}],
-        'genres': ['Science Fiction', 'Drama']
+        'genres': ['Science Fiction', 'Drama'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'blade_runner_2049.jpeg')
     },
     {
         'title': 'Arrival',
@@ -48,7 +59,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Denis', 'surname': 'Villeneuve'},
         'actors': [{'name': 'Amy', 'surname': 'Adams'}, {'name': 'Jeremy', 'surname': 'Renner'}],
-        'genres': ['Science Fiction', 'Drama', 'Mystery']
+        'genres': ['Science Fiction', 'Drama', 'Mystery'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'arrival.jpeg')
     },
     {
         'title': 'Mad Max: Fury Road',
@@ -58,7 +70,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'George', 'surname': 'Miller'},
         'actors': [{'name': 'Tom', 'surname': 'Hardy'}, {'name': 'Charlize', 'surname': 'Theron'}],
-        'genres': ['Action', 'Adventure', 'Science Fiction']
+        'genres': ['Action', 'Adventure', 'Science Fiction'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'mad_max_fury_road.jpeg')
     },
     {
         'title': 'Inception',
@@ -68,7 +81,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Christopher', 'surname': 'Nolan'},
         'actors': [{'name': 'Leonardo', 'surname': 'DiCaprio'}, {'name': 'Joseph', 'surname': 'Gordon-Levitt'}],
-        'genres': ['Action', 'Adventure', 'Science Fiction']
+        'genres': ['Action', 'Adventure', 'Science Fiction'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'inception.jpeg')
     },
      {
         'title': 'La La Land',
@@ -78,7 +92,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Damien', 'surname': 'Chazelle'},
         'actors': [{'name': 'Ryan', 'surname': 'Gosling'}, {'name': 'Emma', 'surname': 'Stone'}],
-        'genres': ['Drama', 'Music', 'Romance']
+        'genres': ['Drama', 'Music', 'Romance'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'la_la_land.jpeg')
     },
     {
         'title': 'Moonlight',
@@ -88,7 +103,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Barry', 'surname': 'Jenkins'},
         'actors': [{'name': 'Trevante', 'surname': 'Rhodes'}, {'name': 'Ashton', 'surname': 'Sanders'}],
-        'genres': ['Drama']
+        'genres': ['Drama'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'moonlight.jpeg')
     },
     {
         'title': 'The Social Network',
@@ -98,7 +114,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'David', 'surname': 'Fincher'},
         'actors': [{'name': 'Jesse', 'surname': 'Eisenberg'}, {'name': 'Andrew', 'surname': 'Garfield'}],
-        'genres': ['Biography', 'Drama']
+        'genres': ['Biography', 'Drama'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'the_social_network.jpeg')
     },
     {
         'title': 'The Grand Budapest Hotel',
@@ -108,7 +125,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Wes', 'surname': 'Anderson'},
         'actors': [{'name': 'Ralph', 'surname': 'Fiennes'}, {'name': 'Tony', 'surname': 'Revolori'}],
-        'genres': ['Adventure', 'Comedy', 'Crime']
+        'genres': ['Adventure', 'Comedy', 'Crime'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'the_grand_budapest_hotel.jpeg')
     },
     {
         'title': 'Parasite',
@@ -118,7 +136,8 @@ movie_list = [
         'language': 'Korean',
         'director': {'name': 'Bong', 'surname': 'Joon-ho'},
         'actors': [{'name': 'Song', 'surname': 'Kang-ho'}, {'name': 'Lee', 'surname': 'Sun-kyun'}],
-        'genres': ['Comedy', 'Drama', 'Thriller']
+        'genres': ['Comedy', 'Drama', 'Thriller'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'parasite.jpeg')
     },
     {
         'title': 'Interstellar',
@@ -128,7 +147,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Christopher', 'surname': 'Nolan'},
         'actors': [{'name': 'Matthew', 'surname': 'McConaughey'}, {'name': 'Anne', 'surname': 'Hathaway'}],
-        'genres': ['Adventure', 'Drama', 'Sci-Fi']
+        'genres': ['Adventure', 'Drama', 'Sci-Fi'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'interstellar.jpeg')
     },
     {
         'title': 'Gone Girl',
@@ -138,7 +158,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'David', 'surname': 'Fincher'},
         'actors': [{'name': 'Ben', 'surname': 'Affleck'}, {'name': 'Rosamund', 'surname': 'Pike'}],
-        'genres': ['Drama', 'Mystery', 'Thriller']
+        'genres': ['Drama', 'Mystery', 'Thriller'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'gone_girl.jpeg')
     },
     {
         'title': 'Whiplash',
@@ -148,7 +169,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Damien', 'surname': 'Chazelle'},
         'actors': [{'name': 'Miles', 'surname': 'Teller'}, {'name': 'J.K.', 'surname': 'Simmons'}],
-        'genres': ['Drama', 'Music']
+        'genres': ['Drama', 'Music'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'whiplash.jpeg')
     },
     {
         'title': 'Birdman',
@@ -158,7 +180,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Alejandro', 'surname': 'Iñárritu'},
         'actors': [{'name': 'Michael', 'surname': 'Keaton'}, {'name': 'Emma', 'surname': 'Stone'}],
-        'genres': ['Comedy', 'Drama']
+        'genres': ['Comedy', 'Drama'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'birdman.jpeg')
     },
     {
         'title': 'Spotlight',
@@ -168,7 +191,8 @@ movie_list = [
         'language': 'English',
         'director': {'name': 'Tom', 'surname': 'McCarthy'},
         'actors': [{'name': 'Mark', 'surname': 'Ruffalo'}, {'name': 'Michael', 'surname': 'Keaton'}],
-        'genres': ['Drama', 'History']
+        'genres': ['Drama', 'History'],
+        'poster': os.path.join(current_directory, '..', 'Posters_to_load', 'spotlight.jpeg')
     }
 ]
 
@@ -191,11 +215,15 @@ def add_movie(movie_data):
         genre, created = Categories.get_or_create_normalized(name=genre_name.strip().title())
         genre_ids.append(genre.id)
 
+    poster_path = movie_data.pop('poster', None)
     movie_data.update({'director': director.id, 'actors': actor_ids, 'genres': genre_ids})
+    
     serializer = MoviesSerializer(data=movie_data)
-
     if serializer.is_valid():
         movie = serializer.save()
+        if poster_path:
+            with open(poster_path, 'rb') as f:
+                movie.poster.save(os.path.basename(poster_path), File(f), save=True)
         print(f"Movie '{movie.title}' added successfully with ID: {movie.id}")
     else:
         print(f"Failed to add movie '{movie_data.get('title')}': {serializer.errors}")
@@ -210,6 +238,11 @@ if __name__ == "__main__":
     Directors.objects.all().delete()
     Categories.objects.all().delete()
     Actors.objects.all().delete()
+
+    # Borramos las imágenes en la carpeta de posters
+    posters_directory = os.path.join(current_directory, 'posters')
+    for file in os.listdir(posters_directory):
+        os.remove(os.path.join(posters_directory, file))
 
     for movie in movie_list:
         add_movie(movie)
