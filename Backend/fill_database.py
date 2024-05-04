@@ -4,9 +4,12 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Backend.settings')
 django.setup()
 
-from Filmaffinity.models import Movies, Actors, Directors, Categories
-from Filmaffinity.serializers import MoviesSerializer
+from Filmaffinity.models import Movies, Actors, Directors, Categories, PlatformUsers, Rating
+from Filmaffinity.serializers import MoviesSerializer, UsersSerializer, RatingSerializer
 from django.core.files import File
+
+from django.db import IntegrityError
+
 
 # Get the directory of the current file (create_movies.py)
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -195,7 +198,56 @@ movie_list = [
     }
 ]
 
-from django.db import IntegrityError
+
+user_data_list = [
+    {'first_name': 'Luis', 'last_name': 'Martinez', 'email': 'luis.martinez@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Sofia', 'last_name': 'Castro', 'email': 'sofia.castro@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Carlos', 'last_name': 'Reyes', 'email': 'carlos.reyes@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Ana', 'last_name': 'Lopez', 'email': 'ana.lopez@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Juan', 'last_name': 'Diaz', 'email': 'juan.diaz@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Marta', 'last_name': 'Gomez', 'email': 'marta.gomez@example.com', 'password': 'Pass1234'},
+    {'first_name': 'Diego', 'last_name': 'Perez', 'email': 'diego.perez@example.com', 'password': 'Pass1234'}
+]
+
+ratings_data = [
+    {'user_email': 'luis.martinez@example.com', 'movie_title': 'Dunkirk', 'rating': 8, 'comment': 'Impressive cinematography!'},
+    {'user_email': 'luis.martinez@example.com', 'movie_title': 'The Dark Knight', 'rating': 10, 'comment': 'Masterpiece!'},
+    {'user_email': 'luis.martinez@example.com', 'movie_title': 'Blade Runner 2049', 'rating': 9, 'comment': 'A visual spectacle!'},
+    {'user_email': 'luis.martinez@example.com', 'movie_title': 'Arrival', 'rating': 3, 'comment': 'Boring...'},
+    {'user_email': 'sofia.castro@example.com', 'movie_title': 'The Dark Knight', 'rating': 9, 'comment': 'Best Batman movie ever!'},
+    {'user_email': 'sofia.castro@example.com', 'movie_title': 'Blade Runner 2049', 'rating': 10, 'comment': 'A masterpiece!'},
+    {'user_email': 'sofia.castro@example.com', 'movie_title': 'Arrival', 'rating': 8, 'comment': 'Great movie!'},
+    {'user_email': 'sofia.castro@example.com', 'movie_title': 'Mad Max: Fury Road', 'rating': 7, 'comment': 'Not my type.'},
+    {'user_email': 'carlos.reyes@example.com', 'movie_title': 'Blade Runner 2049', 'rating': 7, 'comment': 'Visually stunning, but a bit slow.'},
+    {'user_email': 'carlos.reyes@example.com', 'movie_title': 'Arrival', 'rating': 9, 'comment': 'Thought-provoking and beautifully executed.'},
+    {'user_email': 'carlos.reyes@example.com', 'movie_title': 'Gone Girl', 'rating': 8, 'comment': 'Great thriller!'},
+    {'user_email': 'carlos.reyes@example.com', 'movie_title': 'Whiplash', 'rating': 10, 'comment': 'Amazing movie!'},
+    {'user_email': 'ana.lopez@example.com', 'movie_title': 'Arrival', 'rating': 9, 'comment': 'Thought-provoking and beautifully executed.'},
+    {'user_email': 'ana.lopez@example.com', 'movie_title': 'La La Land', 'rating': 10, 'comment': 'Beautiful movie!'},
+    {'user_email': 'ana.lopez@example.com', 'movie_title': 'Moonlight', 'rating': 8, 'comment': 'Great movie!'},
+    {'user_email': 'ana.lopez@example.com', 'movie_title': 'The Social Network', 'rating': 5, 'comment': 'Boring at best'},
+    {'user_email': 'juan.diaz@example.com', 'movie_title': 'Mad Max: Fury Road', 'rating': 8, 'comment': 'What a ride!'},
+    {'user_email': 'juan.diaz@example.com', 'movie_title': 'Inception', 'rating': 9, 'comment': 'Mind-bending!'},
+    {'user_email': 'juan.diaz@example.com', 'movie_title': 'Birdman', 'rating': 7, 'comment': 'Interesting movie.'},
+    {'user_email': 'juan.diaz@example.com', 'movie_title': 'Spotlight', 'rating': 10, 'comment': 'Great movie!'},
+    {'user_email': 'marta.gomez@example.com', 'movie_title': 'Inception', 'rating': 10, 'comment': 'Mind-bending!'},
+    {'user_email': 'marta.gomez@example.com', 'movie_title': 'The Grand Budapest Hotel', 'rating': 8, 'comment': 'Quirky and fun!'},
+    {'user_email': 'marta.gomez@example.com', 'movie_title': 'Parasite', 'rating': 9, 'comment': 'Great movie!'},
+    {'user_email': 'marta.gomez@example.com', 'movie_title': 'Interstellar', 'rating': 10, 'comment': 'Mind-bending!'},
+    {'user_email': 'diego.perez@example.com', 'movie_title': 'La La Land', 'rating': 7, 'comment': 'Great music and visuals, but not my type.'},
+    {'user_email': 'diego.perez@example.com', 'movie_title': 'Moonlight', 'rating': 9, 'comment': 'Great movie!'},
+    {'user_email': 'diego.perez@example.com', 'movie_title': 'The Social Network', 'rating': 8, 'comment': 'Great movie!'},
+    {'user_email': 'diego.perez@example.com', 'movie_title': 'The Grand Budapest Hotel', 'rating': 9, 'comment': 'Quirky and fun!'},
+]
+
+
+def create_users(user_data_list):
+    for user_data in user_data_list:
+        # Creamos usando el user serializer
+        serializer = UsersSerializer(data=user_data)
+        if serializer.is_valid():
+            user = serializer.save()
+            print(f"User '{user.first_name} {user.last_name}' added successfully with ID: {user.id}")
 
 
 def add_movie(movie_data):
@@ -228,6 +280,30 @@ def add_movie(movie_data):
         print(f"Failed to add movie '{movie_data.get('title')}': {serializer.errors}")
 
 
+def add_review():
+    for rating_data in ratings_data:
+        user_email = rating_data.pop('user_email')
+        movie_title = rating_data.pop('movie_title')
+
+        try:
+            user = PlatformUsers.objects.get(email=user_email)
+        except PlatformUsers.DoesNotExist:
+            print(f"User with email '{user_email}' not found.")
+            continue
+
+        try:
+            movie = Movies.objects.get(title=movie_title.lower())
+        except Movies.DoesNotExist:
+            print(f"Movie with title '{movie_title}' not found.")
+            continue
+
+        rating_data.update({'user': user.id, 'movie': movie.id})
+        rating_serializer = RatingSerializer(data=rating_data)
+        if rating_serializer.is_valid():
+            rating = rating_serializer.save()
+            print(f"Rating for movie '{movie.title}' by user '{user.email}' added successfully with ID: {rating.id}")
+        else:
+            print(f"Failed to add rating for movie '{movie_title}' by user '{user_email}': {rating_serializer.errors}")
 
 
 # Ejecutar la adición de películas
@@ -237,6 +313,10 @@ if __name__ == "__main__":
     Directors.objects.all().delete()
     Categories.objects.all().delete()
     Actors.objects.all().delete()
+    Rating.objects.all().delete()
+
+    # Borramos todos los usuarios salvo admin
+    PlatformUsers.objects.exclude(username='admin').delete()
 
     # Borramos las imágenes en la carpeta de posters
     posters_directory = os.path.join(current_directory, 'posters')
@@ -248,4 +328,8 @@ if __name__ == "__main__":
 
     for movie in movie_list:
         add_movie(movie)
+    
+    create_users(user_data_list)
+
+    add_review()
 
