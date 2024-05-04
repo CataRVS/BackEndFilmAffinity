@@ -9,15 +9,25 @@ from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db.utils import IntegrityError
 from django.db.models import Avg
-from .models import Movies
-from .serializers import MoviesSerializer, UsersSerializer, LoginSerializer
+from .models import Movies, Rating
+from .serializers import (MoviesSerializer,
+                          UsersSerializer,
+                          LoginSerializer,
+                          RatingCreateListSerializer)
 
 
 def is_admin(user):
+    """
+    By default users created as PlatformUsers are not staff.
+    Therefore, we need to check if the user is staff to know if it is an admin.
+    """
     return user.is_authenticated and user.is_staff
 
 
 class UserRegisterAPIView(generics.CreateAPIView):
+    """
+    This view allows the registration of a user.
+    """
     serializer_class = UsersSerializer
 
     def handle_exception(self, exc):
@@ -28,15 +38,16 @@ class UserRegisterAPIView(generics.CreateAPIView):
 
 
 class UserLoginAPIView(generics.CreateAPIView):
+    """
+    This view allows the login of a user.
+    """
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        print("0", serializer.is_valid())
         if serializer.is_valid():
-            print("1", type(serializer.validated_data))
+
             token, created = Token.objects.get_or_create(user=serializer.validated_data)
-            print("2", token.key)
             response = Response(status=status.HTTP_201_CREATED)
             response.set_cookie('session', value=token.key, secure=True, httponly=True, samesite='lax')
             return response
@@ -44,11 +55,13 @@ class UserLoginAPIView(generics.CreateAPIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
     
     def handle_exception(self, exc):
-        print("3", exc)
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'exception': str(exc)})
 
 
 class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    This view returns the information of the user.
+    """
     serializer_class = UsersSerializer
 
     def get_object(self):
@@ -62,6 +75,9 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UserLogoutAPIView(generics.DestroyAPIView):
+    """
+    This view allows the logout of a user.
+    """
     def destroy(self, request, *args, **kwargs):
         # We delete the token from the database
         # token = Token.objects.get(key=request.COOKIES['session'])
@@ -71,6 +87,13 @@ class UserLogoutAPIView(generics.DestroyAPIView):
         return response
 
 class MovieListCreateAPIView(generics.ListCreateAPIView):
+    """
+    This view allows the creation of a movie and the list of movies.
+    It consists of a filter to search for movies by title, director,
+    genre, actor, rating, synopsis and language.
+
+    The movies are returned with the average rating.
+    """
     queryset = Movies.objects.all()
     serializer_class = MoviesSerializer
 
@@ -81,7 +104,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         
         import requests
 
-        url = 'http://127.0.0.1:8000/movies/'
+        url = 'http://127.0.0.1:8000/filmaffinity/movies/'
 
         # Data to filter
         movie_data = {
@@ -244,12 +267,20 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
 
     # Only admins can create
     def create(self, request, *args, **kwargs):
+        """
+        If the user is not an admin, we raise an error.
+        If not we create the movie with the data of the request.
+        """
         if not is_admin(request.user):
             raise ValidationError('Only admins can create movies')
         return super().create(request, *args, **kwargs)
 
 
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    This view allows the update and deletion of a movie as well as
+    just seing the movie with the average rating.
+    """
     queryset = Movies.objects.all()
     serializer_class = MoviesSerializer
 
@@ -273,12 +304,32 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     # Only admins can update
     def update(self, request, *args, **kwargs):
+        """
+        If the user is an admin, we update the movie with the data of the request.
+        """
         if not is_admin(request.user):
             raise ValidationError('Only admins can update movies')
         return super().update(request, *args, **kwargs)
 
     # Only admins can delete
     def delete(self, request, *args, **kwargs):
+        """
+        If the user is an admin, we delete the movie.
+        """
         if not is_admin(request.user):
             raise ValidationError('Only admins can delete movies')
         return super().delete(request, *args, **kwargs)
+
+
+
+class RatingAPIView(generics.ListCreateAPIView):
+    serializer_class = RatingCreateListSerializer
+
+    def get_queryset(self):
+        """
+        This method returns the list of ratings for a movie identified by 'pk'.
+        """
+        movie_id = self.kwargs.get('pk')
+        return Rating.objects.filter(movie=movie_id)
+
+   

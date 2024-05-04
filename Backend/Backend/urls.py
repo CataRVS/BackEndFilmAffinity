@@ -1,8 +1,8 @@
 """
-URL configuration for ProjectReinoCatalina project.
+URL configuration for Backend project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
+    https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -16,16 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .BackEnd import views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.urls import include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("movies/", views.MovieListCreateAPIView.as_view(), name="movie-list"),
-    path("movies/<int:pk>/", views.MovieDetailAPIView.as_view(), name="movie-detail"),
-    path("users/", views.UserRegisterAPIView.as_view(), name="user-register"),
-    path("users/login/", views.UserLoginAPIView.as_view(), name="user-login"),
-    path("users/logout/", views.UserLogoutAPIView.as_view(), name="user-logout"),
-    path("users/info/", views.UserInfoAPIView.as_view(), name="user-info"),
-] + static(settings.POSTERS_URL, document_root=settings.POSTERS_DIR)
+    path("filmaffinity/", include("Filmaffinity.urls")),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

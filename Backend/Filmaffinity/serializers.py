@@ -1,8 +1,9 @@
 import re
 from rest_framework import serializers, exceptions
 from django.contrib.auth import authenticate
-from ProjectReinoCatalina.BackEnd import models
+from . import models
 from django.core.validators import RegexValidator
+from rest_framework.authtoken.models import Token
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,9 +37,7 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.RegexField('^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$', min_length=8)
 
     def validate(self, data):
-        print(data)
         data2 = {'username': data.get('email'), 'password': data.get('password')}
-        print(data2)
         user = authenticate(**data2)
 
         if user:
@@ -160,3 +159,50 @@ class RatingSerializer(serializers.ModelSerializer):
         instance.comment = validated_data.get('comment', instance.comment)
         instance.save()
         return instance
+
+
+class RatingCreateListSerializer(serializers.ModelSerializer):
+    # The user field is not mandatory when rating a movie
+    # but it will be return when listing the ratings
+    user = serializers.SlugRelatedField(slug_field='email', read_only=True)
+
+    class Meta:
+        model = models.Rating
+        fields = ['rating', 'comment', 'user']
+    
+    def validate_rating(self, value):
+        try:
+            value = float(value)
+        except ValueError:
+            raise serializers.ValidationError('Rating must be a number')
+        min_rating = 1 
+        max_rating = 10
+        if value < min_rating or value > max_rating:
+            raise serializers.ValidationError(f"Rating must be between {min_rating} and {max_rating}")
+        return value
+
+    def create(self, validated_data):
+
+        # We get the user from the cookie "session"
+        if "session" not in self.context['request'].COOKIES:
+            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
+
+        # Save the token in a variable
+        cookie = self.context['request'].COOKIES['session']
+        try:
+            user = Token.objects.get(key=cookie).user
+        except models.PlatformUsers.DoesNotExist:
+            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
+
+        # We get the movie from the URL
+        movie_id = self.context['view'].kwargs.get('pk')
+        try:
+            movie = models.Movies.objects.get(pk=movie_id)
+        except models.Movies.DoesNotExist:
+            raise exceptions.NotFound('Movie not found')
+
+        # Check if the user has already rated the movie
+        if models.Rating.objects.filter(user=user, movie=movie).exists():
+            raise exceptions.ValidationError('You have already rated this movie')
+
+        return models.Rating.objects.create(user=user, movie=movie, **validated_data)

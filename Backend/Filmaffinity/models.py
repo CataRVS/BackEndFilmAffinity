@@ -29,6 +29,16 @@ class PlatformUsers(AbstractUser):
     email = models.EmailField(max_length=128)
     password = models.CharField(max_length=128)
 
+    # The users are not staff
+    # This is predefined in the AbstractUser but for
+    # clarity and to show that we've thought about it
+    # we add it here
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_("Designates whether the user can log into this admin site."),
+    )
+
     def save(self, *args, **kwargs):
         if not self.username:
             self.username = self.email
@@ -259,7 +269,7 @@ class Rating(models.Model):
     user = models.ForeignKey(PlatformUsers, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movies, on_delete=models.CASCADE, related_name='ratings')
     rating = models.IntegerField()
-    comment = models.TextField()
+    comment = models.TextField(blank=True)  # The comment is optional
 
     class Meta:
         # We order the ratings by the id

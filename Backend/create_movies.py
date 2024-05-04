@@ -1,12 +1,11 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProjectReinoCatalina.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Backend.settings')
 django.setup()
 
-
-from ProjectReinoCatalina.BackEnd.models import Movies, Directors, Categories, Actors
-from ProjectReinoCatalina.BackEnd.serializers import MoviesSerializer
+from Filmaffinity.models import Movies, Actors, Directors, Categories
+from Filmaffinity.serializers import MoviesSerializer
 from django.core.files import File
 
 # Get the directory of the current file (create_movies.py)
@@ -241,8 +240,11 @@ if __name__ == "__main__":
 
     # Borramos las imágenes en la carpeta de posters
     posters_directory = os.path.join(current_directory, 'posters')
-    for file in os.listdir(posters_directory):
-        os.remove(os.path.join(posters_directory, file))
+
+    # Solo si la carpeta existe
+    if os.path.exists(posters_directory):
+        for file in os.listdir(posters_directory):
+            os.remove(os.path.join(posters_directory, file))
 
     for movie in movie_list:
         add_movie(movie)
