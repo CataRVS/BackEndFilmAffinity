@@ -2,63 +2,37 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
+
 
 class PlatformUsers(AbstractUser):
     """
     This class defines the user model.
     A user has the following fields:
     - username: username of the user
-    - name: first name of the user
-    - surname: surname of the user
+    - first_name: first name of the user
+    - last_name: last name of the user
     - email: email of the user
     - password: password of the user
     """
-    # The username cannot contain spaces but
-    # can contain lowercase letters, numbers and underscores
-    # Also, this field is mandatory
-    username = models.CharField(max_length=128,
-                                unique=True,
-                                validators=[RegexValidator("^[a-z0-9_]+$")],
-                                blank=False)
-
-    # The name cannot contain numbers
-    name = models.CharField(max_length=256,
-                              validators=[RegexValidator("^[a-zA-Z ]+$")])
+    first_name = models.CharField(_("first name"), max_length=150, blank=True,
+                                  validators=[RegexValidator("^[a-zA-Z ]+$")])
 
     # The surname cannot contain numbers
-    surname = models.CharField(max_length=256,
+    last_name = models.CharField(_("last name"), max_length=150, blank=True,
                                 validators=[RegexValidator("^[a-zA-Z ]+$")])
 
     # The email must be unique
     email = models.EmailField(max_length=128)
     password = models.CharField(max_length=128)
 
-    # Resolving reverse accessor clashes by defining related_name
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name='groups',
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name="platformuser_set",
-        related_query_name="platformuser",
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name='user permissions',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        related_name="platformuser_set",
-        related_query_name="platformuser",
-    )
-
     def save(self, *args, **kwargs):
         if not self.username:
-            self.username = self.name.lower() + self.surname.lower()
+            self.username = self.email
         super().save(*args, **kwargs)
-
 
 class Categories(models.Model):
     """
@@ -79,6 +53,8 @@ class Categories(models.Model):
     class Meta: 
         # We order the categories by name in alphabetical order
         ordering=('name',)
+        verbose_name = _("category")
+        verbose_name_plural = _("categories")
 
     def __str__(self):
         # The first letter of each word is capitalized
@@ -126,6 +102,8 @@ class Actors(models.Model):
         # We order the actors by name in alphabetical order
         ordering=('name',)
         unique_together = ('name', 'surname')
+        verbose_name = _("actor")
+        verbose_name_plural = _("actors")
 
     def __str__(self):
         # Return Name + Surame capitalized
@@ -176,6 +154,8 @@ class Directors(models.Model):
         # We order the directors by name in alphabetical order
         ordering=('name',)
         unique_together = ('name', 'surname')
+        verbose_name = _("director")
+        verbose_name_plural = _("directors")
 
     def __str__(self):
         # Return Name + Surame capitalized
@@ -251,6 +231,8 @@ class Movies(models.Model):
     class Meta:
         # Ordenamos las películas por orden alfabético 
         ordering=('title',)
+        verbose_name = _("movie")
+        verbose_name_plural = _("movies")
 
     def __str__(self):
         return self.title.title()
@@ -285,6 +267,8 @@ class Rating(models.Model):
 
         # A user cannot rate a movie more than once
         unique_together = ('user', 'movie')
+        verbose_name = _("rating")
+        verbose_name_plural = _("ratings")
 
     def __str__(self):
-        return f"{self.usuario.username} has rated {self.movie.title} with a {self.rating}."
+        return f"{self.user.email} has rated {self.movie.title} with a {self.rating}."

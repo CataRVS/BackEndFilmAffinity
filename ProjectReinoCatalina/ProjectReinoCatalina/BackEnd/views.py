@@ -1,17 +1,74 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.db.utils import IntegrityError
 from django.db.models import Avg
 from .models import Movies
-from .serializers import MoviesSerializer
+from .serializers import MoviesSerializer, UsersSerializer, LoginSerializer
 
 
 def is_admin(user):
     return user.is_authenticated and user.is_staff
 
+
+class UserRegisterAPIView(generics.CreateAPIView):
+    serializer_class = UsersSerializer
+
+    def handle_exception(self, exc):
+        if isinstance(exc, IntegrityError):
+            return Response(status=status.HTTP_409_CONFLICT, data={'error': 'User already exists'})
+        else:
+            return super().handle_exception(exc)
+
+
+class UserLoginAPIView(generics.CreateAPIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        print("0", serializer.is_valid())
+        if serializer.is_valid():
+            print("1", type(serializer.validated_data))
+            token, created = Token.objects.get_or_create(user=serializer.validated_data)
+            print("2", token.key)
+            response = Response(status=status.HTTP_201_CREATED)
+            response.set_cookie('session', value=token.key, secure=True, httponly=True, samesite='lax')
+            return response
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    def handle_exception(self, exc):
+        print("3", exc)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={'exception': str(exc)})
+
+
+class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UsersSerializer
+
+    def get_object(self):
+        user = Token.objects.get(key=self.request.COOKIES['session']).user
+        return user
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+
+class UserLogoutAPIView(generics.DestroyAPIView):
+    def destroy(self, request, *args, **kwargs):
+        # We delete the token from the database
+        # token = Token.objects.get(key=request.COOKIES['session'])
+        # token.delete()
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('session')
+        return response
 
 class MovieListCreateAPIView(generics.ListCreateAPIView):
     queryset = Movies.objects.all()

@@ -8,21 +8,21 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = models.PlatformUsers
-        fields = '__all__'
+        fields = ['id', 'first_name', 'last_name', 'email', 'password']
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
     def validate_password(self, value):
-        patron = '^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$'
-        valid_password = re.match(patron, value) and len(value) >= 8
+        pattern = '^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$'
+        valid_password = re.match(pattern, value) and len(value) >= 8
         if valid_password:
             return value
         else:
             raise exceptions.ValidationError('Invalid password format')
 
     def create(self, validated_data):
-        return models.Users.objects.create_user(username=validated_data['username'], **validated_data)
+        return models.PlatformUsers.objects.create_user(username=validated_data['email'], **validated_data)
 
     def update(self, instance, validated_data):
         if (validated_data.get('password')):
@@ -32,15 +32,19 @@ class UsersSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
 
-    username = serializers.CharField()
-    password = serializers.CharField()
+    email = serializers.CharField()
+    password = serializers.RegexField('^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$', min_length=8)
 
     def validate(self, data):
-        user = authenticate(username=data.get('username'), password=data.get('password'))
+        print(data)
+        data2 = {'username': data.get('email'), 'password': data.get('password')}
+        print(data2)
+        user = authenticate(**data2)
+
         if user:
             return user
         else:
-            raise exceptions.ValidationError('Invalid credentials')
+            raise exceptions.AuthenticationFailed('Invalid credentials')
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
