@@ -46,7 +46,6 @@ class UserLoginAPIView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-
             token, created = Token.objects.get_or_create(user=serializer.validated_data)
             response = Response(status=status.HTTP_201_CREATED)
             response.set_cookie('session', value=token.key, secure=True, httponly=True, samesite='lax')
@@ -65,13 +64,30 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UsersSerializer
 
     def get_object(self):
-        user = Token.objects.get(key=self.request.COOKIES['session']).user
+        token = self.request.COOKIES.get('session')
+        if token is None:
+            raise ObjectDoesNotExist('No session active')
+        user = Token.objects.get(key=token).user
         return user
 
     def retrieve(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        user.delete()
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('session')
+        return response
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ObjectDoesNotExist):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
+        else:
+            return super().handle_exception(exc)
 
 
 class UserLogoutAPIView(generics.DestroyAPIView):
@@ -80,10 +96,13 @@ class UserLogoutAPIView(generics.DestroyAPIView):
     """
     def destroy(self, request, *args, **kwargs):
         # We delete the token from the database
-        # token = Token.objects.get(key=request.COOKIES['session'])
-        # token.delete()
+        if request.COOKIES.get('session') is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie('session')
+        token = Token.objects.get(key=request.COOKIES['session'])
+        token.delete()
         return response
 
 class MovieListCreateAPIView(generics.ListCreateAPIView):
