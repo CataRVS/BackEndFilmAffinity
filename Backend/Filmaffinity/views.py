@@ -16,12 +16,16 @@ from .serializers import (MoviesSerializer,
                           RatingCreateListSerializer)
 
 
-def is_admin(user):
+def is_admin(request):
     """
     By default users created as PlatformUsers are not staff.
     Therefore, we need to check if the user is staff to know if it is an admin.
     """
-    return user.is_authenticated and user.is_staff
+    token = request.COOKIES.get('session')
+    if token is None or not Token.objects.filter(key=token).exists():
+        raise ValidationError('No session active')
+    user = Token.objects.get(key=token).user
+    return user.is_staff
 
 
 class UserRegisterAPIView(generics.CreateAPIView):
@@ -44,15 +48,23 @@ class UserLoginAPIView(generics.CreateAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
+        # If the user has a session active:
+        if request.COOKIES.get('session') is not None:
+            # And the token exists in the database
+            if Token.objects.filter(key=request.COOKIES['session']).exists():
+                # We delete the token from the database
+                token = Token.objects.get(key=request.COOKIES['session'])
+                token.delete()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             token, created = Token.objects.get_or_create(user=serializer.validated_data)
             response = Response(status=status.HTTP_201_CREATED)
-            response.set_cookie('session', value=token.key, secure=True, httponly=True, samesite='lax')
+            response.set_cookie('session', value=token.key, secure=True,
+                                httponly=True, samesite='lax')
             return response
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    
+
     def handle_exception(self, exc):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={'exception': str(exc)})
 
@@ -105,6 +117,7 @@ class UserLogoutAPIView(generics.DestroyAPIView):
         token.delete()
         return response
 
+
 class MovieListCreateAPIView(generics.ListCreateAPIView):
     """
     This view allows the creation of a movie and the list of movies.
@@ -120,7 +133,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         """
         To call this function to retrieve the moovies appliyin the filters
         a code similar to the following must be used:
-        
+
         import requests
 
         url = 'http://127.0.0.1:8000/filmaffinity/movies/'
@@ -212,10 +225,10 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
             # We look for those that contain the name
             else:
                 queryset = queryset.filter(director__name__icontains=director_name)
-        
+
         # Filter for the movies that contain the genre
         if genre is not None:
-            queryset = queryset.filter(genres__icontains=genre)
+            queryset = queryset.filter(genres__name__icontains=genre)
 
         # Filter for the movies that contain the actor
         if actor is not None:
@@ -236,27 +249,28 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
             # We look for those that contain the name
             else:
                 queryset = queryset.filter(actors__name__icontains=actor_name)
-        
+
         # Filter for the movies that have a rating greater than the rating
         if rating is not None:
             # The mean of the ratings of the movie must be greater than the rating
             # If the movie has no ratings, the mean is 0
-            queryset = queryset.annotate(avg_rating=Avg('ratings__rating')).filter(avg_rating__gte=rating)
-        
+            queryset = queryset.annotate(avg_rating=Avg('ratings__rating')
+                                         ).filter(avg_rating__gte=rating)
+
         # Filter for the movies that contain the synopsis
         if synopsis is not None:
             queryset = queryset.filter(synopsis__icontains=synopsis)
-        
+
         # Filter for the movies that have the release date
         if release_date is not None:
             queryset = queryset.filter(release_date__icontains=release_date)
-        
+
         # Filter for the movies that contain the language
         if language is not None:
             queryset = queryset.filter(language__icontains=language)
 
         return queryset
-    
+
     def list(self, request, *args, **kwargs):
         """
         This function returns the list of the movies with the average rating.
@@ -290,9 +304,19 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         If the user is not an admin, we raise an error.
         If not we create the movie with the data of the request.
         """
-        if not is_admin(request.user):
+        token = request.COOKIES.get('session')
+        if token is None or not Token.objects.filter(key=token).exists():
+            raise ValidationError('No session active')
+        user = Token.objects.get(key=token).user
+        if not user.is_staff:
             raise ValidationError('Only admins can create movies')
         return super().create(request, *args, **kwargs)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ObjectDoesNotExist):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
+        return super().handle_exception(exc)
 
 
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -326,7 +350,7 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         If the user is an admin, we update the movie with the data of the request.
         """
-        if not is_admin(request.user):
+        if not is_admin(request):
             raise ValidationError('Only admins can update movies')
         return super().update(request, *args, **kwargs)
 
@@ -335,10 +359,9 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         If the user is an admin, we delete the movie.
         """
-        if not is_admin(request.user):
+        if not is_admin(request):
             raise ValidationError('Only admins can delete movies')
         return super().delete(request, *args, **kwargs)
-
 
 
 class RatingAPIView(generics.ListCreateAPIView):
@@ -350,5 +373,3 @@ class RatingAPIView(generics.ListCreateAPIView):
         """
         movie_id = self.kwargs.get('pk')
         return Rating.objects.filter(movie=movie_id)
-
-   

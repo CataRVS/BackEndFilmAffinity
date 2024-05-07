@@ -5,6 +5,7 @@ from . import models
 from django.core.validators import RegexValidator
 from rest_framework.authtoken.models import Token
 
+
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
 
@@ -23,7 +24,8 @@ class UsersSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError('Invalid password format')
 
     def create(self, validated_data):
-        return models.PlatformUsers.objects.create_user(username=validated_data['email'], **validated_data)
+        return models.PlatformUsers.objects.create_user(username=validated_data['email'],
+                                                        **validated_data)
 
     def update(self, instance, validated_data):
         if (validated_data.get('password')):
@@ -56,12 +58,12 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return models.Categories.objects.create(**validated_data)
-    
+
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.save()
         return instance
-    
+
 
 class MoviesSerializer(serializers.ModelSerializer):
 
@@ -85,13 +87,15 @@ class MoviesSerializer(serializers.ModelSerializer):
         return movie
 
     def update(self, instance, validated_data):
+        genres = validated_data.pop('genres', [])
+        actors = validated_data.pop('actors', [])
         # TODO: probar que funciona
         instance.title = validated_data.get('title', instance.title)
-        instance.synopsis = validated_data.get('synopsis', instance.sinopsis)
-        instance.genres = validated_data.get('genres', instance.genres)
+        instance.synopsis = validated_data.get('synopsis', instance.synopsis)
         instance.duration = validated_data.get('duration', instance.duration)
         instance.director = validated_data.get('director', instance.director)
-        instance.actors = validated_data.get('actors', instance.actors)
+        instance.genres.set(genres)
+        instance.actors.set(actors)
         instance.release_date = validated_data.get('release_date', instance.release_date)
         instance.language = validated_data.get('language', instance.language)
         instance.save()
@@ -142,10 +146,11 @@ class RatingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_rating(self, value):
-        min_rating = 1 
+        min_rating = 1
         max_rating = 10
         if value < min_rating or value > max_rating:
-            raise serializers.ValidationError(f"Rating must be between {min_rating} and {max_rating}")
+            raise serializers.ValidationError(f"Rating must be between {min_rating} and "
+                                              f"{max_rating}")
         return value
 
     def create(self, validated_data):
@@ -169,16 +174,17 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Rating
         fields = ['rating', 'comment', 'user']
-    
+
     def validate_rating(self, value):
         try:
             value = float(value)
         except ValueError:
             raise serializers.ValidationError('Rating must be a number')
-        min_rating = 1 
+        min_rating = 1
         max_rating = 10
         if value < min_rating or value > max_rating:
-            raise serializers.ValidationError(f"Rating must be between {min_rating} and {max_rating}")
+            raise serializers.ValidationError(f"Rating must be between {min_rating} and " +
+                                              f"{max_rating}")
         return value
 
     def create(self, validated_data):

@@ -1,13 +1,12 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 
+# Create your models here.
 class PlatformUsers(AbstractUser):
     """
     This class defines the user model.
@@ -23,7 +22,7 @@ class PlatformUsers(AbstractUser):
 
     # The surname cannot contain numbers
     last_name = models.CharField(_("last name"), max_length=150, blank=True,
-                                validators=[RegexValidator("^[a-zA-Z ]+$")])
+                                 validators=[RegexValidator("^[a-zA-Z ]+$")])
 
     # The email must be unique
     email = models.EmailField(max_length=128)
@@ -44,12 +43,13 @@ class PlatformUsers(AbstractUser):
             self.username = self.email
         super().save(*args, **kwargs)
 
+
 class Categories(models.Model):
     """
     In this table we define the categories of the movies.
     Only the admin can add new categories and these
     cannot be repeated.
-    
+
     A category has the following fields:
     - name: name of the category.
     """
@@ -60,16 +60,16 @@ class Categories(models.Model):
                             unique=True,
                             validators=[RegexValidator("^[a-zA-Z ]+$")])
 
-    class Meta: 
+    class Meta:
         # We order the categories by name in alphabetical order
-        ordering=('name',)
+        ordering = ('name',)
         verbose_name = _("category")
         verbose_name_plural = _("categories")
 
     def __str__(self):
         # The first letter of each word is capitalized
         return self.name.title()
-    
+
     def save(self, *args, **kwargs):
         # Normalize the name of the category
         self.name = slugify(self.name, allow_unicode=True).replace('-', ' ').title()
@@ -106,11 +106,11 @@ class Actors(models.Model):
     name = models.CharField(max_length=256,
                             validators=[RegexValidator("^[a-zA-Z ]+$")])
     surname = models.CharField(max_length=256,
-                            validators=[RegexValidator("^[a-zA-Z ]+$")])
+                               validators=[RegexValidator("^[a-zA-Z ]+$")])
 
     class Meta:
         # We order the actors by name in alphabetical order
-        ordering=('name',)
+        ordering = ('name',)
         unique_together = ('name', 'surname')
         verbose_name = _("actor")
         verbose_name_plural = _("actors")
@@ -158,11 +158,11 @@ class Directors(models.Model):
     name = models.CharField(max_length=256,
                             validators=[RegexValidator("^[a-zA-Z ]+$")])
     surname = models.CharField(max_length=256,
-                            validators=[RegexValidator("^[a-zA-Z ]+$")])
+                               validators=[RegexValidator("^[a-zA-Z ]+$")])
 
     class Meta:
         # We order the directors by name in alphabetical order
-        ordering=('name',)
+        ordering = ('name',)
         unique_together = ('name', 'surname')
         verbose_name = _("director")
         verbose_name_plural = _("directors")
@@ -239,8 +239,8 @@ class Movies(models.Model):
                                default=None)
 
     class Meta:
-        # Ordenamos las películas por orden alfabético 
-        ordering=('title',)
+        # Ordenamos las películas por orden alfabético
+        ordering = ('title',)
         verbose_name = _("movie")
         verbose_name_plural = _("movies")
 
@@ -273,7 +273,7 @@ class Rating(models.Model):
 
     class Meta:
         # We order the ratings by the id
-        ordering=('id',)
+        ordering = ('id',)
 
         # A user cannot rate a movie more than once
         unique_together = ('user', 'movie')
