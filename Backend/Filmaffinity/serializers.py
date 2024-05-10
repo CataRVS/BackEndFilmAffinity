@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from . import models
 from django.core.validators import RegexValidator
 from rest_framework.authtoken.models import Token
+from django.conf import settings
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -212,3 +213,38 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
             raise exceptions.ValidationError('You have already rated this movie')
 
         return models.Rating.objects.create(user=user, movie=movie, **validated_data)
+
+
+class UserRatingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Rating
+        fields = ['rating', 'comment', 'movie']
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+    def to_representation(self, instance):
+        # We want the movie title and poster full url
+        # as well as the rating and comment
+        # We must add an id to the review
+    
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+
+        data['id'] = instance.id
+
+        if request is not None:
+            poster_url = request.build_absolute_uri(instance.movie.poster.url)
+        
+        else:
+            poster_url = instance.movie.poster.url
+        
+        data['movie'] = {
+            'id': instance.movie.id,
+            'title': instance.movie.title,
+            'poster': poster_url
+        }
+        print(poster_url)
+        return data

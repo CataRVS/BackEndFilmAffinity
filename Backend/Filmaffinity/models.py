@@ -285,7 +285,7 @@ class Rating(models.Model):
     - comment: movie comment
     """
 
-    user = models.ForeignKey(PlatformUsers, on_delete=models.CASCADE)
+    user = models.ForeignKey(PlatformUsers, on_delete=models.CASCADE, related_name='ratings')
     movie = models.ForeignKey(Movies, on_delete=models.CASCADE, related_name='ratings')
     rating = models.IntegerField()
     comment = models.TextField(blank=True)  # The comment is optional

@@ -14,7 +14,8 @@ from .models import Movies, Rating
 from .serializers import (MoviesSerializer,
                           UsersSerializer,
                           LoginSerializer,
-                          RatingCreateListSerializer)
+                          RatingCreateListSerializer,
+                          UserRatingsSerializer)
 from rest_framework.pagination import PageNumberPagination
 
 def is_admin(request):
@@ -106,7 +107,9 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         user = self.get_object()
         serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        data = serializer.data
+
+        return Response(data)
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -157,6 +160,38 @@ class UserLogoutAPIView(generics.DestroyAPIView):
         token = Token.objects.get(key=request.COOKIES['session'])
         token.delete()
         return response
+
+
+class UserReviewsListAPIView(generics.ListAPIView):
+    """
+    This view returns the reviews of the user.
+    """
+    serializer_class = UserRatingsSerializer
+
+    def get_object(self):
+        """
+        Function to get the user from the token.
+        """
+        # We get the user from the token
+        token = self.request.COOKIES.get('session')
+
+        # If the token does not exist, we raise an error
+        if token is None:
+            raise ObjectDoesNotExist('No session active')
+
+        # We get the user from the token
+        user = Token.objects.get(key=token).user
+        return user
+
+    def list(self, request, *args, **kwargs):
+        """
+        This function returns the reviews of the user.
+        """
+        user = self.get_object()
+        ratings = user.ratings.all()
+        serializer = self.get_serializer(ratings, many=True)
+        return Response(serializer.data)
+        
 
 
 class MovieListCreateAPIView(generics.ListCreateAPIView):
@@ -388,6 +423,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         movie_data['genres'] = [str(genre) for genre in movie.genres.all()]
 
         return movie_data
+
 
 
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
