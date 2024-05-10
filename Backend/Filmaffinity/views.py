@@ -28,6 +28,15 @@ def is_admin(request):
     user = Token.objects.get(key=token).user
     return user.is_staff
 
+class UserIsLoggedAPIView(generics.GenericAPIView):
+    """
+    This view checks if the user is logged in.
+    """
+    def get(self, request, *args, **kwargs):
+        if request.COOKIES.get('session') is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED, data={'error': 'No session active'})
+        return Response(status=status.HTTP_200_OK)
+
 
 class UserRegisterAPIView(generics.CreateAPIView):
     """
@@ -94,6 +103,15 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie('session')
         return response
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
 
     def handle_exception(self, exc):
         if isinstance(exc, ObjectDoesNotExist):

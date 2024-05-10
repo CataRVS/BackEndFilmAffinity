@@ -18,11 +18,13 @@ class PlatformUsers(AbstractUser):
     - password: password of the user
     """
     first_name = models.CharField(_("first name"), max_length=150, blank=True,
-                                  validators=[RegexValidator("^[a-zA-Z ]+$")])
+                                  validators=[RegexValidator(r"^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$",
+                                                             message="Enter a valid first name.")])
 
     # The surname cannot contain numbers
     last_name = models.CharField(_("last name"), max_length=150, blank=True,
-                                 validators=[RegexValidator("^[a-zA-Z ]+$")])
+                                 validators=[RegexValidator(r"^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$",
+                                                            message="Enter a valid last name.")])
 
     # The email must be unique
     email = models.EmailField(max_length=128)
