@@ -370,7 +370,7 @@ def add_review():
             continue
 
         try:
-            movie = Movies.objects.get(title=movie_title.lower())
+            movie = Movies.objects.get(title=movie_title)
         except Movies.DoesNotExist:
             print(f"Movie with title '{movie_title}' not found.")
             continue

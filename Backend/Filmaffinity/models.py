@@ -189,9 +189,7 @@ class Directors(models.Model):
         normalized_name = slugify(name, allow_unicode=True).replace('-', ' ').title()
         normalized_surname = slugify(surname, allow_unicode=True).replace('-', ' ').title()
 
-        print(normalized_name, normalized_surname)
-
-        # Usa get_or_create con los datos normalizados
+        # Use get_or_create with normalized data
         return cls.objects.get_or_create(
             name=normalized_name,
             surname=normalized_surname,
@@ -249,8 +247,27 @@ class Movies(models.Model):
 
     def save(self, *args, **kwargs):
         # Title is normalized
-        self.title = slugify(self.title, allow_unicode=True).replace('-', ' ')
+        self.title = slugify(self.title, allow_unicode=True).replace('-', ' ').title()
         super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_or_create_normalized(cls, title):
+        """
+        When doing get_or_create, it compares regarding upper cases
+        but we save the names in lower case. We define this method
+        to normalize the names before doing the get_or_create, in order
+        to avoid trying to create the same movie with different cases,
+        which would raise an IntegrityError.
+        """
+        normalized_title = slugify(title, allow_unicode=True).replace('-', ' ').title()
+
+        # Use get_or_create with normalized data
+        return cls.objects.get_or_create(
+            title=normalized_title,
+            defaults={'title': normalized_title}
+        )
+        
+
 
 
 class Rating(models.Model):

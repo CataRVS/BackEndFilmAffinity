@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "drf_spectacular",
     "Filmaffinity",
+    "corsheaders",  # To connect DJango with React
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",      # To connect DJango with React
+    "django.middleware.common.CommonMiddleware",  # To connect DJango with React
 ]
 
 ROOT_URLCONF = "Backend.urls"
@@ -143,6 +146,8 @@ AUTH_USER_MODEL = "Filmaffinity.PlatformUsers"
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10  # Default page size
 }
 
 SPECTACULAR_SETTINGS = {
@@ -151,3 +156,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# To allow requests from React
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React domain
+]
+
+CORS_ALLOW_ALL_ORIGINS = True

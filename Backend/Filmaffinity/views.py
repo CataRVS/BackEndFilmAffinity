@@ -14,7 +14,7 @@ from .serializers import (MoviesSerializer,
                           UsersSerializer,
                           LoginSerializer,
                           RatingCreateListSerializer)
-
+from rest_framework.pagination import PageNumberPagination
 
 def is_admin(request):
     """
@@ -128,10 +128,11 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
     """
     queryset = Movies.objects.all()
     serializer_class = MoviesSerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         """
-        To call this function to retrieve the moovies appliyin the filters
+        To call this function to retrieve the movies appliyin the filters
         a code similar to the following must be used:
 
         import requests
@@ -178,7 +179,8 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
                           'genre',
                           'actor',
                           'synopsis',
-                          'language'}
+                          'language',
+                          'page_size',}
 
         request_params = set(self.request.query_params.keys())
         invalid_params = request_params - allowed_params
@@ -220,15 +222,15 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
                 # We get the movies directed by directors that have that name
                 # and contain the surname
                 queryset = queryset.filter(director__name=director_name,
-                                           director__surname__icontains=director_surname)
+                                           director__surname__icontains=director_surname).distinct()
 
             # We look for those that contain the name
             else:
-                queryset = queryset.filter(director__name__icontains=director_name)
+                queryset = queryset.filter(director__name__icontains=director_name).distinct()
 
         # Filter for the movies that contain the genre
         if genre is not None:
-            queryset = queryset.filter(genres__name__icontains=genre)
+            queryset = queryset.filter(genres__name__icontains=genre).distinct()
 
         # Filter for the movies that contain the actor
         if actor is not None:
@@ -244,11 +246,11 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
 
                 # We get the movies that have that actor
                 queryset = queryset.filter(actors__name=actor_name,
-                                           actors__surname__icontains=actor_surname)
+                                           actors__surname__icontains=actor_surname).distinct()
 
             # We look for those that contain the name
             else:
-                queryset = queryset.filter(actors__name__icontains=actor_name)
+                queryset = queryset.filter(actors__name__icontains=actor_name).distinct()
 
         # Filter for the movies that have a rating greater than the rating
         if rating is not None:
@@ -259,7 +261,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
 
         # Filter for the movies that contain the synopsis
         if synopsis is not None:
-            queryset = queryset.filter(synopsis__icontains=synopsis)
+            queryset = queryset.filter(synopsis__icontains=synopsis).distinct()
 
         # Filter for the movies that have the release date
         if release_date is not None:
@@ -267,7 +269,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
 
         # Filter for the movies that contain the language
         if language is not None:
-            queryset = queryset.filter(language__icontains=language)
+            queryset = queryset.filter(language__icontains=language).distinct()
 
         return queryset
 
@@ -277,6 +279,22 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         """
         queryset = self.filter_queryset(self.get_queryset())
 
+        # First look for the pagination
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            data = []
+            for i, movie in enumerate(page):
+                movie_data = serializer.data[i]
+                data.append(self.enrich_movie(movie, movie_data))
+            return paginator.get_paginated_response(data)
+
+
+        # If there is not a page we return the whole queryset filtered
+        queryset = self.filter_queryset(self.get_queryset())
+
         # We get the serializer of the queryset, retrieving
         # the movies of the filter in JSON format
         serializer = self.get_serializer(queryset, many=True)
@@ -284,17 +302,8 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         # We add the rating to the movies
         data = []
         for i, movie in enumerate(queryset):
-            rating_avg = movie.ratings.aggregate(avg_rating=Avg('rating')).get('avg_rating')
-            if rating_avg is None:
-                rating_avg = 0  # If there are no ratings, we assign a mean of 0
             movie_data = serializer.data[i]
-            movie_data['average_rating'] = rating_avg
-
-            # We change the director and actors to a string
-            movie_data['director'] = str(movie.director)
-            movie_data['actors'] = [str(actor) for actor in movie.actors.all()]
-            movie_data['genres'] = [str(genre) for genre in movie.genres.all()]
-            data.append(movie_data)
+            data.append(self.enrich_movie(movie, movie_data))
 
         return Response(data)
 
@@ -318,6 +327,23 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
                             data={'error': 'No session active'})
         return super().handle_exception(exc)
 
+    def enrich_movie(self, movie, movie_data):
+        """
+        This function returns the movie with the average rating.
+        """
+        rating_avg = movie.ratings.aggregate(avg_rating=Avg('rating')).get('avg_rating')
+
+        # We add the rating to the movie
+        movie_data['average_rating'] = rating_avg
+
+        # We change the director and actors to a string
+        movie_data['title'] = str(movie.title)
+        movie_data['director'] = str(movie.director)
+        movie_data['actors'] = [str(actor) for actor in movie.actors.all()]
+        movie_data['genres'] = [str(genre) for genre in movie.genres.all()]
+
+        return movie_data
+
 
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -334,8 +360,6 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         rating_avg = instance.ratings.aggregate(avg_rating=Avg('rating')).get('avg_rating')
-        if rating_avg is None:
-            rating_avg = 0
         data = serializer.data
         data['average_rating'] = rating_avg
 
