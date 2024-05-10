@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Q
 
 # Create your views here.
 from rest_framework import generics, status
@@ -210,23 +211,24 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         if director is not None:
 
             director = director.split()
-            director_name = director[0]
 
-            # If the director has a name and a surname
-            # we assume that the name is complete and the surname
-            # can be incomplete
+            # Design the query to filter the movies that contain the director name
+            director_name_query = Q(director__name__icontains=director[0])
+        
+            # Check if the director has a name and a surname
             if len(director) > 1:
 
-                director_surname = ' '.join(director[1:])
-
-                # We get the movies directed by directors that have that name
-                # and contain the surname
-                queryset = queryset.filter(director__name=director_name,
-                                           director__surname__icontains=director_surname).distinct()
-
-            # We look for those that contain the name
+                # Design the query to filter the movies that contain the director surname
+                # concating all the words after the name
+                director_surname_query = Q(director__surname__icontains=' '.join(director[1:]))
+            
             else:
-                queryset = queryset.filter(director__name__icontains=director_name).distinct()
+                # Check if the first word is the name or the surname
+                director_surname_query = Q(director__surname__icontains=director[0])
+
+            # Filter the queryset with the director name or surname
+            queryset = queryset.filter(director_name_query | director_surname_query).distinct()
+    
 
         # Filter for the movies that contain the genre
         if genre is not None:
@@ -235,22 +237,25 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         # Filter for the movies that contain the actor
         if actor is not None:
             actor = actor.split()
-            actor_name = actor[0]
+            
+            # Design the query to filter the movies that contain the actor name
+            actor_name_query = Q(actors__name__icontains=actor[0])
 
-            # If the actor has a name and a surname
-            # we assume that the name is complete and the surname
-            # can be incomplete
+            # Check if the actor has a name and a surname
             if len(actor) > 1:
-
-                actor_surname = ' '.join(actor[1:])
-
-                # We get the movies that have that actor
-                queryset = queryset.filter(actors__name=actor_name,
-                                           actors__surname__icontains=actor_surname).distinct()
-
-            # We look for those that contain the name
+                    
+                # Design the query to filter the movies that contain the actor surname
+                # concating all the words after the name
+                actor_surname_query = Q(actors__surname__icontains=' '.join(actor[1:]))
+            
             else:
-                queryset = queryset.filter(actors__name__icontains=actor_name).distinct()
+                # Check if the first word is the name or the surname
+                actor_surname_query = Q(actors__surname__icontains=actor[0])
+            
+            # Filter the queryset with the actor name or surname
+            queryset = queryset.filter(actor_name_query | actor_surname_query).distinct()
+
+
 
         # Filter for the movies that have a rating greater than the rating
         if rating is not None:
