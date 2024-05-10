@@ -86,18 +86,32 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UsersSerializer
 
     def get_object(self):
+        """
+        Function to get the user from the token.
+        """
+        # We get the user from the token
         token = self.request.COOKIES.get('session')
+
+        # If the token does not exist, we raise an error
         if token is None:
             raise ObjectDoesNotExist('No session active')
+
+        # We get the user from the token
         user = Token.objects.get(key=token).user
         return user
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        Return the user information.
+        """
         user = self.get_object()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Performs the logout of the user.
+        """
         user = self.get_object()
         user.delete()
         response = Response(status=status.HTTP_204_NO_CONTENT)
@@ -105,8 +119,16 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
         return response
 
     def update(self, request, *args, **kwargs):
+        """
+        Update the user information.
+        """
+        # Retreive the user
         user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data)
+
+        # Only update the fields provided in the request
+        # if they have changed
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
