@@ -174,7 +174,7 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Rating
-        fields = ['rating', 'comment', 'user']
+        fields = ['id', 'rating', 'comment', 'user']
 
     def validate_rating(self, value):
         try:

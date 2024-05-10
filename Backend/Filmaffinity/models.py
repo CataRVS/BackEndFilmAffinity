@@ -268,9 +268,6 @@ class Movies(models.Model):
             title=normalized_title,
             defaults={'title': normalized_title}
         )
-        
-
-
 
 class Rating(models.Model):
     """

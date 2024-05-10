@@ -471,6 +471,7 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class RatingAPIView(generics.ListCreateAPIView):
     serializer_class = RatingCreateListSerializer
+    pagination_class = None
 
     def get_queryset(self):
         """
