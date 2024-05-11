@@ -12,4 +12,5 @@ urlpatterns = [
     path("users/check-session/", views.UserIsLoggedAPIView.as_view(), name="user-islogged"),
     path("users/ratings/", views.UserReviewsListAPIView.as_view(), name="user-ratings"),
     path("movies/<int:pk>/rating/", views.RatingAPIView.as_view(), name="rating-create"),
+    path("movies/<int:pk>/rating/user-rating/", views.RatingUserMovieAPIView.as_view(), name="rating-user-movie"),
 ]

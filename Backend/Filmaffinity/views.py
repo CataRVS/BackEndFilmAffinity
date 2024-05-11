@@ -191,7 +191,6 @@ class UserReviewsListAPIView(generics.ListAPIView):
         ratings = user.ratings.all()
         serializer = self.get_serializer(ratings, many=True)
         return Response(serializer.data)
-        
 
 
 class MovieListCreateAPIView(generics.ListCreateAPIView):
@@ -425,7 +424,6 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         return movie_data
 
 
-
 class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     This view allows the update and deletion of a movie as well as
@@ -479,3 +477,44 @@ class RatingAPIView(generics.ListCreateAPIView):
         """
         movie_id = self.kwargs.get('pk')
         return Rating.objects.filter(movie=movie_id)
+
+
+class RatingUserMovieAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = RatingCreateListSerializer
+
+    def get_object(self):
+        """
+        This method returns the rating of the user for the movie.
+        """
+        movie_id = self.kwargs.get('pk')
+        token = self.request.COOKIES.get('session')
+        if token is None or not Token.objects.filter(key=token).exists():
+            raise ValidationError('No session active')
+        user = Token.objects.get(key=token).user
+        return Rating.objects.get(user=user, movie=movie_id)
+
+    def update(self, request, *args, **kwargs):
+        """
+        This method updates the rating of the user for the movie.
+        """
+        rating = self.get_object()
+        serializer = self.get_serializer(rating, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        This method deletes the rating of the user for the movie.
+        """
+        rating = self.get_object()
+        rating.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ObjectDoesNotExist):
+            return Response(status=status.HTTP_404_NOT_FOUND,
+                            data={'error': 'Rating does not exist'})
+        return super().handle_exception(exc)
