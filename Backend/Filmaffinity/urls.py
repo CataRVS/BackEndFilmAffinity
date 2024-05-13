@@ -10,6 +10,7 @@ urlpatterns = [
     path("users/logout/", views.UserLogoutAPIView.as_view(), name="user-logout"),
     path("users/info/", views.UserInfoAPIView.as_view(), name="user-info"),
     path("users/check-session/", views.UserIsLoggedAPIView.as_view(), name="user-islogged"),
+    path("users/check-admin/", views.UserIsAdminAPIView.as_view(), name="user-isadmin"),
     path("users/ratings/", views.UserReviewsListAPIView.as_view(), name="user-ratings"),
     path("movies/<int:pk>/rating/", views.RatingAPIView.as_view(), name="rating-create"),
     path("movies/<int:pk>/rating/user-rating/", views.RatingUserMovieAPIView.as_view(), name="rating-user-movie"),

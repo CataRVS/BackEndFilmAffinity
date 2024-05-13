@@ -35,9 +35,25 @@ class UserIsLoggedAPIView(generics.GenericAPIView):
     """
     def get(self, request, *args, **kwargs):
         if request.COOKIES.get('session') is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED, data={'error': 'No session active'})
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
         return Response(status=status.HTTP_200_OK)
 
+class UserIsAdminAPIView(generics.GenericAPIView):
+    """
+    This view checks if the user is an admin.
+    """
+    def get(self, request, *args, **kwargs):
+        if not is_admin(request):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
+        return Response(status=status.HTTP_200_OK)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ValidationError):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'No session active'})
+        return super().handle_exception(exc)
 
 class UserRegisterAPIView(generics.CreateAPIView):
     """
