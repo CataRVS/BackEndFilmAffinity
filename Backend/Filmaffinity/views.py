@@ -10,12 +10,15 @@ from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db.utils import IntegrityError
 from django.db.models import Avg
-from .models import Movies, Rating
+from .models import Movies, Rating, Actors, Directors, Categories
 from .serializers import (MoviesSerializer,
                           UsersSerializer,
                           LoginSerializer,
                           RatingCreateListSerializer,
-                          UserRatingsSerializer)
+                          UserRatingsSerializer,
+                          ActorsSerializer,
+                          DirectorsSerializer,
+                          CategoriesSerializer)
 from rest_framework.pagination import PageNumberPagination
 
 def is_admin(request):
@@ -25,6 +28,7 @@ def is_admin(request):
     """
     token = request.COOKIES.get('session')
     if token is None or not Token.objects.filter(key=token).exists():
+        print(token)
         raise ValidationError('No session active')
     user = Token.objects.get(key=token).user
     return user.is_staff
@@ -34,9 +38,8 @@ class UserIsLoggedAPIView(generics.GenericAPIView):
     This view checks if the user is logged in.
     """
     def get(self, request, *args, **kwargs):
-        print("CHECKING SESSION")
-        print("request", request)
-        if request.COOKIES.get('session') is None or not Token.objects.filter(key=request.COOKIES['session']).exists():
+        token = request.COOKIES.get('session')
+        if token is None or not Token.objects.filter(key=token).exists():
             return Response(status=status.HTTP_401_UNAUTHORIZED,
                             data={'error': 'No session active'})
         return Response(status=status.HTTP_200_OK)
@@ -88,6 +91,7 @@ class UserLoginAPIView(generics.CreateAPIView):
                 
         print("PROCEDIENDO A SERIALIZAR")
         serializer = self.get_serializer(data=request.data)
+        print(serializer)
         if serializer.is_valid():
             # 1. Create token in django model Token
             token, created = Token.objects.get_or_create(user=serializer.validated_data)
@@ -115,6 +119,7 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         # We get the user from the token
         token = self.request.COOKIES.get('session')
+        print("TOKEN", token)
 
         # If the token does not exist, we raise an error
         if token is None:
@@ -122,6 +127,7 @@ class UserInfoAPIView(generics.RetrieveUpdateDestroyAPIView):
 
         # We get the user from the token
         user = Token.objects.get(key=token).user
+        print("USER", user)
         return user
 
     def retrieve(self, request, *args, **kwargs):
@@ -416,13 +422,33 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         If not we create the movie with the data of the request.
         """
         token = request.COOKIES.get('session')
-        print("TOKEN", token)
         if token is None or not Token.objects.filter(key=token).exists():
             raise ValidationError('No session active')
         user = Token.objects.get(key=token).user
         if not user.is_staff:
             raise ValidationError('Only admins can create movies')
-        return super().create(request, *args, **kwargs)
+
+        # Transform the data if is not in the correct type
+        data = dict(request.data)
+        print(data)
+        try:
+            data['genres'] = validate_genres(data.get('genres', []), self.get_serializer())
+            data['director'] = validate_director(data.get('director'), self.get_serializer())
+            data['actors'] = validate_actors(data.get('actors', []), self.get_serializer())
+
+            serializer = self.get_serializer(data=data)
+            print(serializer)
+            print(serializer.is_valid())
+            print(serializer.errors)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors)
+        
+        except ValidationError as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': str(e)})
 
     def handle_exception(self, exc):
         if isinstance(exc, ObjectDoesNotExist):
@@ -456,6 +482,13 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Movies.objects.all()
     serializer_class = MoviesSerializer
 
+    def get_object(self):
+        """
+        This function returns the movie with the id 'pk'.
+        """
+        movie_id = self.kwargs.get('pk')
+        return Movies.objects.get(id=movie_id)
+
     def retrieve(self, request, *args, **kwargs):
         """
         This function returns the movie with the average rating.
@@ -479,7 +512,24 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         """
         if not is_admin(request):
             raise ValidationError('Only admins can update movies')
-        return super().update(request, *args, **kwargs)
+       
+        # Only update the fields of the movie if they have changed
+        instance = self.get_object()
+
+        # Transform the data if is not in the correct type
+        # request.data is a form so we need to transform it to a dictionary
+        data = dict(request.data)
+        data['genres'] = validate_genres(data.get('genres', []), self.get_serializer())
+        data['director'] = validate_director(data.get('director'), self.get_serializer())
+        data['actors'] = validate_actors(data.get('actors', []), self.get_serializer())
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            print(serializer.errors)
+            return Response(serializer.errors)
 
     # Only admins can delete
     def delete(self, request, *args, **kwargs):
@@ -489,6 +539,7 @@ class MovieDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
         if not is_admin(request):
             raise ValidationError('Only admins can delete movies')
         return super().delete(request, *args, **kwargs)
+
 
 
 class RatingAPIView(generics.ListCreateAPIView):
@@ -542,3 +593,179 @@ class RatingUserMovieAPIView(generics.RetrieveUpdateDestroyAPIView):
             return Response(status=status.HTTP_404_NOT_FOUND,
                             data={'error': 'Rating does not exist'})
         return super().handle_exception(exc)
+
+
+class ActorsListCreateAPIView(generics.ListCreateAPIView):
+    """
+    This view allows the creation of an actor and the list of actors.
+    """
+    serializer_class = ActorsSerializer
+    pagination_class = None
+    queryset = Actors.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        """
+        This method creates an actor.
+        """
+        # Only admins can create
+        if not is_admin(request):
+            raise ValidationError('Only admins can create actors')
+
+        return super().create(request, *args, **kwargs)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ValidationError):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'Only admins can create actors'})
+    
+        # If there is an error in the creation of the actor
+        # we return a 409 status code
+        if isinstance(exc, IntegrityError):
+            return Response(status=status.HTTP_409_CONFLICT,
+                            data={'error': 'Actor already exists'})
+        return super().handle_exception(exc)
+
+
+class DirectorListCreateAPIVIew(generics.ListCreateAPIView):
+    """
+    This view allows the creation of a director and the list of directors.
+    """
+    serializer_class = DirectorsSerializer
+    pagination_class = None
+    queryset = Directors.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        """
+        This method creates a director.
+        """
+        # Only admins can create
+        if not is_admin(request):
+            raise ValidationError('Only admins can create directors')
+
+        return super().create(request, *args, **kwargs)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ValidationError):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'Only admins can create directors'})
+    
+        # If there is an error in the creation of the director
+        # we return a 409 status code
+        if isinstance(exc, IntegrityError):
+            return Response(status=status.HTTP_409_CONFLICT,
+                            data={'error': 'Director already exists'})
+        return super().handle_exception(exc)
+
+
+class CategoriesListCreateAPIView(generics.ListCreateAPIView):
+    """
+    This view allows the creation of a category and the list of categories.
+    """
+    serializer_class = CategoriesSerializer
+    pagination_class = None
+    queryset = Categories.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        """
+        This method creates a category.
+        """
+        # Only admins can create
+        if not is_admin(request):
+            raise ValidationError('Only admins can create categories')
+
+        return super().create(request, *args, **kwargs)
+
+    def handle_exception(self, exc):
+        if isinstance(exc, ValidationError):
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'Only admins can create categories'})
+    
+        # If there is an error in the creation of the category
+        # we return a 409 status code
+        if isinstance(exc, IntegrityError):
+            return Response(status=status.HTTP_409_CONFLICT,
+                            data={'error': 'Category already exists'})
+        return super().handle_exception(exc)
+
+
+
+# FUNCTIONS
+def validate_actors(value, serializer):
+    if not value:
+        raise serializer.ValidationError("At least one actor is required")
+    
+    # If value[0] is not of type Actor, we check if it is a dict
+    # containing the name and surname of the actor and we get or create it
+    if not isinstance(value[0], Actors):
+        actors = []
+        for actor in value:
+
+            # Check that it is a dictionary
+            if not isinstance(actor, dict):
+                raise serializer.ValidationError("Actors must be a list of dictionaries")
+
+            name = actor.get('name')
+            surname = actor.get('surname')
+
+            # If name and surname are not none
+            if name and surname:
+                actor, created = Actors.get_or_create_normalized(name=name, surname=surname)
+                actors.append(actor.pk)
+            else:
+                raise serializer.ValidationError("Name and surname are required")
+        return actors
+
+    # if not, we return the list of actors
+    print('Actors Validated')
+    return value
+
+def validate_director(value, serializer):
+    if not value:
+        raise serializer.ValidationError("Director is required")
+    
+    # If value is not of type Director, we check if it is a dict
+    # containing the name and surname of the director and we get or create it
+    if not isinstance(value, Directors):
+        print(value)
+        name = value.get('name')
+        surname = value.get('surname')
+
+        # Check that it is a dictionary
+        if not isinstance(value, dict):
+            raise serializer.ValidationError("Director must be a dictionary")
+
+        # If name and surname are not none
+        if name and surname:
+            director, created = Directors.get_or_create_normalized(name=name, surname=surname)
+            return director.pk
+        else:
+            raise serializer.ValidationError("Name and surname are required")
+
+    # if not, we return the director
+    print('Director Validated')
+    return value
+
+def validate_genres(value, serializer):
+    if not value:
+        raise serializer.ValidationError("At least one genre is required")
+    
+    # If value[0] is not of type Category, we check if it is a string
+    # containing the name of the category and we get or create it
+    if not isinstance(value[0], Categories):
+        genres = []
+        for genre in value:
+
+            # Check that it is a string
+            if not isinstance(genre, str):
+                raise serializer.ValidationError("Genres must be a list of strings")
+
+            # If name is not none
+            if genre:
+                genre, created = Categories.get_or_create_normalized(name=genre)
+                genres.append(genre.pk)
+            else:
+                raise serializer.ValidationError("Name is required")
+        return genres
+
+    # if not, we return the list of genres
+    return value

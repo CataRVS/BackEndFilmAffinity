@@ -42,7 +42,6 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         data2 = {'username': data.get('email'), 'password': data.get('password')}
         user = authenticate(**data2)
-
         if user:
             return user
         else:
