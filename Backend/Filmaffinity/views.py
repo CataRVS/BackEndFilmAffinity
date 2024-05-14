@@ -34,7 +34,9 @@ class UserIsLoggedAPIView(generics.GenericAPIView):
     This view checks if the user is logged in.
     """
     def get(self, request, *args, **kwargs):
-        if request.COOKIES.get('session') is None:
+        print("CHECKING SESSION")
+        print("request", request)
+        if request.COOKIES.get('session') is None or not Token.objects.filter(key=request.COOKIES['session']).exists():
             return Response(status=status.HTTP_401_UNAUTHORIZED,
                             data={'error': 'No session active'})
         return Response(status=status.HTTP_200_OK)
@@ -75,19 +77,24 @@ class UserLoginAPIView(generics.CreateAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
+        print("HOLA ESTOY LOGEANDO")
         # If the user has a session active:
-        if request.COOKIES.get('session') is not None:
-            # And the token exists in the database
-            if Token.objects.filter(key=request.COOKIES['session']).exists():
-                # We delete the token from the database
-                token = Token.objects.get(key=request.COOKIES['session'])
-                token.delete()
+        # if request.COOKIES.get('session') is not None:
+        #     # And the token exists in the database
+        #     if Token.objects.filter(key=request.COOKIES['session']).exists():
+        #         # We delete the token from the database
+        #         token = Token.objects.get(key=request.COOKIES['session'])
+        #         token.delete()
+                
+        print("PROCEDIENDO A SERIALIZAR")
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            # 1. Create token in django model Token
             token, created = Token.objects.get_or_create(user=serializer.validated_data)
+            # 2. Set-Cookie -> navegator
             response = Response(status=status.HTTP_201_CREATED)
-            response.set_cookie('session', value=token.key, secure=True,
-                                httponly=True, samesite='lax')
+            response.set_cookie('session', token.key)
+            
             return response
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -409,6 +416,7 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
         If not we create the movie with the data of the request.
         """
         token = request.COOKIES.get('session')
+        print("TOKEN", token)
         if token is None or not Token.objects.filter(key=token).exists():
             raise ValidationError('No session active')
         user = Token.objects.get(key=token).user

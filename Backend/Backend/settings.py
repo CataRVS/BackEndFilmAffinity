@@ -66,6 +66,16 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",  # To connect DJango with React
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React domain
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",  # React domain
+]
+
+
 ROOT_URLCONF = "Backend.urls"
 
 TEMPLATES = [
