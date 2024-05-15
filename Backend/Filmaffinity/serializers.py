@@ -188,30 +188,7 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-
-        # We get the user from the cookie "session"
-        if "session" not in self.context['request'].COOKIES:
-            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
-
-        # Save the token in a variable
-        cookie = self.context['request'].COOKIES['session']
-        try:
-            user = Token.objects.get(key=cookie).user
-        except models.PlatformUsers.DoesNotExist:
-            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
-
-        # We get the movie from the URL
-        movie_id = self.context['view'].kwargs.get('pk')
-        try:
-            movie = models.Movies.objects.get(pk=movie_id)
-        except models.Movies.DoesNotExist:
-            raise exceptions.NotFound('Movie not found')
-
-        # Check if the user has already rated the movie
-        if models.Rating.objects.filter(user=user, movie=movie).exists():
-            raise exceptions.ValidationError('You have already rated this movie')
-
-        return models.Rating.objects.create(user=user, movie=movie, **validated_data)
+        return models.Rating.objects.create(**validated_data)
 
 
 class UserRatingsSerializer(serializers.ModelSerializer):
@@ -245,5 +222,4 @@ class UserRatingsSerializer(serializers.ModelSerializer):
             'title': instance.movie.title,
             'poster': poster_url
         }
-        print(poster_url)
         return data
