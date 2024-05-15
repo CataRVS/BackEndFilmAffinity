@@ -18,11 +18,13 @@ class PlatformUsers(AbstractUser):
     - password: password of the user
     """
     first_name = models.CharField(_("first name"), max_length=150, blank=True,
-                                  validators=[RegexValidator("^[a-zA-Z ]+$")])
+                                  validators=[RegexValidator(r"^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$",
+                                                             message="Enter a valid first name.")])
 
     # The surname cannot contain numbers
     last_name = models.CharField(_("last name"), max_length=150, blank=True,
-                                 validators=[RegexValidator("^[a-zA-Z ]+$")])
+                                 validators=[RegexValidator(r"^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$",
+                                                            message="Enter a valid last name.")])
 
     # The email must be unique
     email = models.EmailField(max_length=128)
@@ -266,9 +268,6 @@ class Movies(models.Model):
             title=normalized_title,
             defaults={'title': normalized_title}
         )
-        
-
-
 
 class Rating(models.Model):
     """
@@ -283,7 +282,7 @@ class Rating(models.Model):
     - comment: movie comment
     """
 
-    user = models.ForeignKey(PlatformUsers, on_delete=models.CASCADE)
+    user = models.ForeignKey(PlatformUsers, on_delete=models.CASCADE, related_name='ratings')
     movie = models.ForeignKey(Movies, on_delete=models.CASCADE, related_name='ratings')
     rating = models.IntegerField()
     comment = models.TextField(blank=True)  # The comment is optional

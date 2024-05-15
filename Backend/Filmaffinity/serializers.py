@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from . import models
 from django.core.validators import RegexValidator
 from rest_framework.authtoken.models import Token
+from django.conf import settings
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -41,7 +42,6 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         data2 = {'username': data.get('email'), 'password': data.get('password')}
         user = authenticate(**data2)
-
         if user:
             return user
         else:
@@ -173,7 +173,7 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Rating
-        fields = ['rating', 'comment', 'user']
+        fields = ['id', 'rating', 'comment', 'user']
 
     def validate_rating(self, value):
         try:
@@ -188,27 +188,38 @@ class RatingCreateListSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        return models.Rating.objects.create(**validated_data)
 
-        # We get the user from the cookie "session"
-        if "session" not in self.context['request'].COOKIES:
-            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
 
-        # Save the token in a variable
-        cookie = self.context['request'].COOKIES['session']
-        try:
-            user = Token.objects.get(key=cookie).user
-        except models.PlatformUsers.DoesNotExist:
-            raise exceptions.AuthenticationFailed('You must be logged in to rate a movie')
+class UserRatingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Rating
+        fields = ['rating', 'comment', 'movie']
 
-        # We get the movie from the URL
-        movie_id = self.context['view'].kwargs.get('pk')
-        try:
-            movie = models.Movies.objects.get(pk=movie_id)
-        except models.Movies.DoesNotExist:
-            raise exceptions.NotFound('Movie not found')
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
-        # Check if the user has already rated the movie
-        if models.Rating.objects.filter(user=user, movie=movie).exists():
-            raise exceptions.ValidationError('You have already rated this movie')
+    def to_representation(self, instance):
+        # We want the movie title and poster full url
+        # as well as the rating and comment
+        # We must add an id to the review
+    
+        data = super().to_representation(instance)
+        request = self.context.get('request')
 
-        return models.Rating.objects.create(user=user, movie=movie, **validated_data)
+        data['id'] = instance.id
+
+        if request is not None:
+            poster_url = request.build_absolute_uri(instance.movie.poster.url)
+        
+        else:
+            poster_url = instance.movie.poster.url
+        
+        data['movie'] = {
+            'id': instance.movie.id,
+            'title': instance.movie.title,
+            'poster': poster_url
+        }
+        return data

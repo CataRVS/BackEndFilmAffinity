@@ -19,8 +19,11 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.urls import include
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path("filmaffinity/", include("Filmaffinity.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
