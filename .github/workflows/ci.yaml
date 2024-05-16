@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
+      - name: Cambiar al directorio Backend
+        run: cd Backend
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
