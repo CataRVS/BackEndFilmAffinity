@@ -396,7 +396,13 @@ if __name__ == "__main__":
     Rating.objects.all().delete()
 
     # Borramos todos los usuarios salvo admin
-    PlatformUsers.objects.exclude(username='admin@email.com').delete()
+    PlatformUsers.objects.all().delete()
+    admin = PlatformUsers.objects.create(first_name='super',
+                                         last_name='admin',
+                                         email='admin@email.com',
+                                         is_staff=True)
+    admin.set_password('Pass1234')
+    admin.save()
 
     # Borramos las imágenes en la carpeta de posters
     posters_directory = os.path.join(current_directory, 'posters')
