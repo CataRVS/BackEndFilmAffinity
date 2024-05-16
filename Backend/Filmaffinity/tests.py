@@ -25,6 +25,20 @@ class UserViewsTestCase(TestCase):
         self.token = Token.objects.create(user=self.user)
         self.admin_token = Token.objects.create(user=self.admin)
 
+        # Create a movie
+        self.movie = Movies.objects.create(title='Movie 1',
+                                            director=Directors.get_or_create_normalized(name='Director1', surname='SurnameD1')[0],
+                                            release_date='2021-01-01',
+                                            duration=120,
+                                            synopsis='Movie 1 synopsis, boy, car',
+                                            language='English')
+        self.movie.genres.add(Categories.get_or_create_normalized(name='Action')[0].pk)
+        self.movie.actors.add(Actors.get_or_create_normalized(name='Actor1', surname='Surname1')[0].pk)
+        self.movie.actors.add(Actors.get_or_create_normalized(name='Actor2', surname='Surname2')[0].pk)
+
+        # Create a rating for the movie
+        Rating.objects.create(user=self.user, movie=self.movie, rating=8, comment='Good movie')
+
         # Create a client
         self.client = Client()
 
@@ -167,6 +181,10 @@ class UserViewsTestCase(TestCase):
         self.client.cookies['session'] = self.token.key
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('first_name', response.json())
+        self.assertIn('last_name', response.json())
+        self.assertIn('email', response.json())
+        self.assertNotIn('password', response.json())
 
     def test_user_ratings(self):
         """Tests to check the ratings endpoint"""

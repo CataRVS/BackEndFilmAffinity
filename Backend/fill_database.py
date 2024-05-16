@@ -396,7 +396,7 @@ if __name__ == "__main__":
     Rating.objects.all().delete()
 
     # Borramos todos los usuarios salvo admin
-    PlatformUsers.objects.exclude(username='admin').delete()
+    PlatformUsers.objects.exclude(username='admin@email.com').delete()
 
     # Borramos las imágenes en la carpeta de posters
     posters_directory = os.path.join(current_directory, 'posters')
@@ -405,6 +405,13 @@ if __name__ == "__main__":
     if os.path.exists(posters_directory):
         for file in os.listdir(posters_directory):
             os.remove(os.path.join(posters_directory, file))
+
+    # Cargamos el poster por defecto a la carpeta de posters
+    default_poster_path = os.path.join(current_directory, '..', 'Posters_to_load', 'default.png')
+    with open(default_poster_path, 'rb') as f:
+        default_poster_path = os.path.join(posters_directory, 'default.png')
+        with open(default_poster_path, 'wb') as poster_file:
+            poster_file.write(f.read())
 
     for movie in movie_list:
         add_movie(movie)

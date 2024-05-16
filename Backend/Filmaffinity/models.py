@@ -236,7 +236,7 @@ class Movies(models.Model):
     poster = models.ImageField(upload_to='posters/',
                                blank=True,
                                null=True,
-                               default=None)
+                               default='posters/default.png')
 
     class Meta:
         # Ordenamos las películas por orden alfabético
