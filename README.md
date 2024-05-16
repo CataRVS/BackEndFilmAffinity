@@ -47,19 +47,19 @@ The application has the following models:
 ## API
 The application has the following endpoints presented in a table below:
 
-| URL                                   | HTTP           | Response                              | Function                                          |
-|---------------------------------------|-----------------------|----------------------------------------------------|----------------------------------------------------------|
-| `/movies/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create a movie                                   |
-| `/movies/<int:pk>/`                   | GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 404 Not Found | Detalle, actualización o eliminación de una película     |
-| `/users/`                             | POST                  | 201 Created, 400 Bad Request, 409 Conflict         | Registro de usuario                                      |
-| `/users/login/`                       | POST                  | 201 Created, 401 Unauthorized                      | Inicio de sesión del usuario                             |
-| `/users/logout/`                      | DELETE                | 204 No Content, 401 Unauthorized                   | Cierre de sesión del usuario                             |
-| `/users/info/`                        | GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized | Obtener, actualizar o eliminar información del usuario  |
-| `/users/check-session/`               | GET                   | 200 OK, 401 Unauthorized                           | Comprueba si el usuario está logueado                    |
-| `/users/check-admin/`                 | GET                   | 200 OK, 401 Unauthorized                           | Comprueba si el usuario es administrador                 |
-| `/users/ratings/`                     | GET                   | 200 OK, 401 Unauthorized                           | Lista de valoraciones del usuario                        |
-| `/movies/<int:pk>/rating/`            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 409 Conflict | Lista o crea valoración para una película                |
-| `/movies/<int:pk>/rating/user-rating/`| GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 404 Not Found | Obtener, actualizar o eliminar valoración del usuario    |
-| `/actors/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | Lista o crea actores                                     |
-| `/directors/`                         | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | Lista o crea directores                                  |
-| `/categories/`                        | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | Lista o crea categorías                                  |
+| URL                                   | HTTP Methods          | Response Codes                                    | Functionality                                            |
+|---------------------------------------|-----------------------|---------------------------------------------------|----------------------------------------------------------|
+| `/movies/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create movies                                    |
+| `/movies/<int:pk>/`                   | GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 404 Not Found | View, update, or delete a movie                          |
+| `/users/`                             | POST                  | 201 Created, 400 Bad Request, 409 Conflict        | User registration                                        |
+| `/users/login/`                       | POST                  | 201 Created, 401 Unauthorized                      | User login                                               |
+| `/users/logout/`                      | DELETE                | 204 No Content, 401 Unauthorized                   | User logout                                              |
+| `/users/info/`                        | GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized | Get, update, or delete user information                  |
+| `/users/check-session/`               | GET                   | 200 OK, 401 Unauthorized                           | Check if the user is logged in                           |
+| `/users/check-admin/`                 | GET                   | 200 OK, 401 Unauthorized                           | Check if the user is an administrator                    |
+| `/users/ratings/`                     | GET                   | 200 OK, 401 Unauthorized                           | List user's ratings                                      |
+| `/movies/<int:pk>/rating/`            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 409 Conflict | List or create a rating for a movie                      |
+| `/movies/<int:pk>/rating/user-rating/`| GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 404 Not Found | Get, update, or delete a user's movie rating             |
+| `/actors/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create actors                                    |
+| `/directors/`                         | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create directors                                 |
+| `/categories/`                        | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create categories                                |
