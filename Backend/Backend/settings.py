@@ -152,7 +152,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 WHITENOISE_INDEX_FILE = True
-WHITENOISE_ROOT = BASE_DIR / "web"
+WHITENOISE_ROOT = os.path.join(BASE_DIR, "web")
 
 if not DEBUG:
     # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
