@@ -32,7 +32,8 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r Backend/requirements.txt
       - name: Ejecutar pruebas
         run: |
+          cd Backend
           python manage.py test
