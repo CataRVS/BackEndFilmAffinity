@@ -47,9 +47,9 @@ The application has the following models:
 ## API
 The application has the following endpoints presented in a table below:
 
-| URL                                   | Verbos HTTP           | Códigos de Respuesta                               | Funcionalidad                                           |
+| URL                                   | HTTP           | Response                              | Function                                          |
 |---------------------------------------|-----------------------|----------------------------------------------------|----------------------------------------------------------|
-| `/movies/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | Lista o crea películas                                   |
+| `/movies/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create a movie                                   |
 | `/movies/<int:pk>/`                   | GET, PUT, DELETE      | 200 OK, 204 No Content, 400 Bad Request, 401 Unauthorized, 404 Not Found | Detalle, actualización o eliminación de una película     |
 | `/users/`                             | POST                  | 201 Created, 400 Bad Request, 409 Conflict         | Registro de usuario                                      |
 | `/users/login/`                       | POST                  | 201 Created, 401 Unauthorized                      | Inicio de sesión del usuario                             |
