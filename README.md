@@ -34,6 +34,7 @@ To add data to the database, you can use the following command:
 ```bash
 python fill_database.py
 ```
+It is VERY IMPORTANT that the debug variable is True in local and False for render
 
 ## Models
 The application has the following models:
