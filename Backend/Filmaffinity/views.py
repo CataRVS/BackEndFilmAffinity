@@ -547,9 +547,6 @@ class MovieListCreateAPIView(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        # except ValidationError as e:
-        #     return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': str(e)})
 
     def handle_exception(self, exc):
         if isinstance(exc, PermissionDenied):

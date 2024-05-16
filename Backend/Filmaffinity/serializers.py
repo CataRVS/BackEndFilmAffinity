@@ -205,18 +205,22 @@ class UserRatingsSerializer(serializers.ModelSerializer):
         # We want the movie title and poster full url
         # as well as the rating and comment
         # We must add an id to the review
-    
         data = super().to_representation(instance)
         request = self.context.get('request')
 
         data['id'] = instance.id
 
         if request is not None:
-            poster_url = request.build_absolute_uri(instance.movie.poster.url)
-        
+            if instance.movie.poster:
+                poster_url = request.build_absolute_uri(instance.movie.poster.url)
+            else:
+                poster_url = None
         else:
-            poster_url = instance.movie.poster.url
-        
+            if instance.movie.poster:
+                poster_url = instance.movie.poster.url
+            else:
+                poster_url = None
+
         data['movie'] = {
             'id': instance.movie.id,
             'title': instance.movie.title,
