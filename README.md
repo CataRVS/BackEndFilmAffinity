@@ -63,3 +63,6 @@ The application has the following endpoints presented in a table below:
 | `/actors/`                            | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create actors                                    |
 | `/directors/`                         | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create directors                                 |
 | `/categories/`                        | GET, POST             | 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized | List or create categories                                |
+
+OpenAPI documentation can be created automatically by introducing the following direction in a navigator while the server is running:
+`http://localhost:8000/schema/`
