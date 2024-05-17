@@ -1,0 +1,952 @@
+openapi: 3.0.3
+info:
+  title: Filmaffinity
+  version: 1.0.0
+  description: API for Filmaffinity clone project
+paths:
+  /filmaffinity/actors/:
+    get:
+      operationId: filmaffinity_actors_list
+      description: This view allows the creation of an actor and the list of actors.
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Actors'
+          description: ''
+    post:
+      operationId: filmaffinity_actors_create
+      description: This view allows the creation of an actor and the list of actors.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Actors'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Actors'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Actors'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Actors'
+          description: ''
+  /filmaffinity/categories/:
+    get:
+      operationId: filmaffinity_categories_list
+      description: This view allows the creation of a category and the list of categories.
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categories'
+          description: ''
+    post:
+      operationId: filmaffinity_categories_create
+      description: This view allows the creation of a category and the list of categories.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Categories'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Categories'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Categories'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Categories'
+          description: ''
+  /filmaffinity/directors/:
+    get:
+      operationId: filmaffinity_directors_list
+      description: This view allows the creation of a director and the list of directors.
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Directors'
+          description: ''
+    post:
+      operationId: filmaffinity_directors_create
+      description: This view allows the creation of a director and the list of directors.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Directors'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Directors'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Directors'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Directors'
+          description: ''
+  /filmaffinity/movies/:
+    get:
+      operationId: filmaffinity_movies_list
+      description: |-
+        This view allows the creation of a movie and the list of movies.
+        It consists of a filter to search for movies by title, director,
+        genre, actor, rating, synopsis and language.
+
+        The movies are returned with the average rating.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMoviesList'
+          description: ''
+    post:
+      operationId: filmaffinity_movies_create
+      description: |-
+        This view allows the creation of a movie and the list of movies.
+        It consists of a filter to search for movies by title, director,
+        genre, actor, rating, synopsis and language.
+
+        The movies are returned with the average rating.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movies'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Movies'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Movies'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movies'
+          description: ''
+  /filmaffinity/movies/{id}/:
+    get:
+      operationId: filmaffinity_movies_retrieve
+      description: |-
+        This view allows the update and deletion of a movie as well as
+        just seing the movie with the average rating.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movies'
+          description: ''
+    put:
+      operationId: filmaffinity_movies_update
+      description: |-
+        This view allows the update and deletion of a movie as well as
+        just seing the movie with the average rating.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Movies'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Movies'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Movies'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movies'
+          description: ''
+    patch:
+      operationId: filmaffinity_movies_partial_update
+      description: |-
+        This view allows the update and deletion of a movie as well as
+        just seing the movie with the average rating.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMovies'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMovies'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMovies'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movies'
+          description: ''
+    delete:
+      operationId: filmaffinity_movies_destroy
+      description: If the user is an admin, we delete the movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /filmaffinity/movies/{id}/rating/:
+    get:
+      operationId: filmaffinity_movies_rating_list
+      description: Create a rating for a movie and list all the ratings of a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RatingCreateList'
+          description: ''
+    post:
+      operationId: filmaffinity_movies_rating_create
+      description: Create a rating for a movie and list all the ratings of a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingCreateList'
+          description: ''
+  /filmaffinity/movies/{id}/rating/user-rating/:
+    get:
+      operationId: filmaffinity_movies_rating_user_rating_retrieve
+      description: Get, update or delete the rating of the user for a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingCreateList'
+          description: ''
+    put:
+      operationId: filmaffinity_movies_rating_user_rating_update
+      description: Get, update or delete the rating of the user for a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RatingCreateList'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingCreateList'
+          description: ''
+    patch:
+      operationId: filmaffinity_movies_rating_user_rating_partial_update
+      description: Get, update or delete the rating of the user for a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRatingCreateList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRatingCreateList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRatingCreateList'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingCreateList'
+          description: ''
+    delete:
+      operationId: filmaffinity_movies_rating_user_rating_destroy
+      description: Get, update or delete the rating of the user for a movie.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /filmaffinity/users/:
+    post:
+      operationId: filmaffinity_users_create
+      description: User registration endpoint
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Users'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Users'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Users'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          description: User registered successfully.
+        '400':
+          description: Invalid data.
+        '409':
+          description: User already exists.
+  /filmaffinity/users/check-admin/:
+    get:
+      operationId: filmaffinity_users_check_admin_retrieve
+      description: Admin endpoint
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: The user is Admin of the platform.
+        '401':
+          description: The user is not Admin of the platform or no session active.
+  /filmaffinity/users/check-session/:
+    get:
+      operationId: filmaffinity_users_check_session_retrieve
+      description: Logged in endpoint
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: The user is logged in.
+        '401':
+          description: No session active.
+  /filmaffinity/users/info/:
+    get:
+      operationId: filmaffinity_users_info_retrieve
+      description: This view returns the information of the user.
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+          description: ''
+    put:
+      operationId: filmaffinity_users_info_update
+      description: This view returns the information of the user.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Users'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Users'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Users'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+          description: ''
+    patch:
+      operationId: filmaffinity_users_info_partial_update
+      description: This view returns the information of the user.
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUsers'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUsers'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUsers'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+          description: ''
+    delete:
+      operationId: filmaffinity_users_info_destroy
+      description: This view returns the information of the user.
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /filmaffinity/users/login/:
+    post:
+      operationId: filmaffinity_users_login_create
+      description: User login endpoint
+      tags:
+      - filmaffinity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          description: User logged in successfully.
+        '401':
+          description: Invalid credentials.
+  /filmaffinity/users/logout/:
+    delete:
+      operationId: filmaffinity_users_logout_destroy
+      description: User logout endpoint
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: User logged out successfully.
+        '401':
+          description: No session active.
+  /filmaffinity/users/ratings/:
+    get:
+      operationId: filmaffinity_users_ratings_list
+      description: User reviews endpoint
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - filmaffinity
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: List of reviews returned successfully
+        '401':
+          description: No session active
+components:
+  schemas:
+    Actors:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          pattern: ^[a-zA-Z ]+$
+          maxLength: 256
+        surname:
+          type: string
+          pattern: ^[a-zA-Z ]+$
+          maxLength: 256
+      required:
+      - id
+      - name
+      - surname
+    Categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          pattern: ^[a-zA-Z ]+$
+          maxLength: 50
+      required:
+      - id
+      - name
+    Directors:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          pattern: ^[a-zA-Z ]+$
+          maxLength: 256
+        surname:
+          type: string
+          pattern: ^[a-zA-Z ]+$
+          maxLength: 256
+      required:
+      - id
+      - name
+      - surname
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+          pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z]).*$
+      required:
+      - email
+      - password
+    Movies:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 150
+        synopsis:
+          type: string
+        duration:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        release_date:
+          type: string
+          format: date
+        language:
+          type: string
+          maxLength: 50
+        poster:
+          type: string
+          format: uri
+          nullable: true
+        director:
+          type: integer
+        genres:
+          type: array
+          items:
+            type: integer
+        actors:
+          type: array
+          items:
+            type: integer
+      required:
+      - actors
+      - director
+      - duration
+      - genres
+      - id
+      - language
+      - release_date
+      - synopsis
+      - title
+    PaginatedMoviesList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movies'
+    PatchedMovies:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 150
+        synopsis:
+          type: string
+        duration:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        release_date:
+          type: string
+          format: date
+        language:
+          type: string
+          maxLength: 50
+        poster:
+          type: string
+          format: uri
+          nullable: true
+        director:
+          type: integer
+        genres:
+          type: array
+          items:
+            type: integer
+        actors:
+          type: array
+          items:
+            type: integer
+    PatchedRatingCreateList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        comment:
+          type: string
+        user:
+          type: string
+          format: email
+          readOnly: true
+    PatchedUsers:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          pattern: ^[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1\u00dc\u00fc\s]+$
+          maxLength: 150
+        last_name:
+          type: string
+          pattern: ^[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1\u00dc\u00fc\s]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 128
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+    RatingCreateList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        comment:
+          type: string
+        user:
+          type: string
+          format: email
+          readOnly: true
+      required:
+      - id
+      - rating
+      - user
+    Users:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        first_name:
+          type: string
+          pattern: ^[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1\u00dc\u00fc\s]+$
+          maxLength: 150
+        last_name:
+          type: string
+          pattern: ^[A-Za-z\u00c1\u00c9\u00cd\u00d3\u00da\u00e1\u00e9\u00ed\u00f3\u00fa\u00d1\u00f1\u00dc\u00fc\s]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 128
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+      required:
+      - email
+      - id
+      - password
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
