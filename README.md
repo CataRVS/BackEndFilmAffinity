@@ -11,6 +11,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+If problems with the requirements appear, please remove the following dependency from the requirements.txt file and try again:
+```bash
+psycopg2==2.9.9
+```
+
 If you have a windows and already have a .venv folder, you can activate it with the following command:
 ```bash
 cd BackEnd
